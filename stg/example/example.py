@@ -8,7 +8,7 @@ import clr
 from pathlib import Path
 import System
 # %%
-libpath = Path(__file__).parent.parent
+libpath = Path(__file__).parent.parent.parent
 dllpath = libpath / "bin" / "McsUsbNet.dll"
 fullPath = str(dllpath)
 lib = System.Reflection.Assembly.LoadFile(fullPath)
@@ -42,7 +42,10 @@ DurationNet  = ([System.UInt64(d) for d in Duration])
 device.PrepareAndSendData(0, Amplitude, Duration, STG_DestinationEnumNet.channeldata_voltage)
 device.SendStart(1)
 
-device.Disconnect()
-
-del deviceList
-del device
+device.PrepareAndSendData(1, Amplitude, Duration, STG_DestinationEnumNet.channeldata_voltage)
+device.SendStart(2)
+#
+#device.Disconnect()
+#
+#del deviceList
+#del device

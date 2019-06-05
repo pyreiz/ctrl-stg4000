@@ -13,11 +13,11 @@ class PulseFile():
     '''
     
     def __init__(self,
-                 intensity:int=1000, #in milliamps
+                 intensity:int=1000, #in microamps, i.e. 1000 -> 1 mA
                  mode:str='biphasic',
-                 pulsewidth:int=10, #in milliseconds
+                 pulsewidth:int=1, #in milliseconds, i.e. 10 -> 1ms
                  burstcount:int=1, 
-                 isi:int=480):
+                 isi:int=48): #in milliseconds, i.e. 48 -> 48ms
                 
         if mode == 'biphasic':
             intensity = [intensity, -intensity]

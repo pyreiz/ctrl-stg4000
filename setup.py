@@ -11,6 +11,9 @@ setup(
     download_url='https://github.com/pyreiz/app-stg4000.git',
     license='MIT',
     packages=['stg'],
+    entry_points = {
+        'console_scripts': ['stg4000-pulsegui=stg.gui.main:main'],
+        },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',

@@ -57,6 +57,12 @@ class BasicInterface():
     def __getattr__(self, item):
         return getattr(self._interface, item)
 
+
+def bitmap(valuelist:list):
+    bmap = sum(map(lambda x: 2**x, valuelist)) 
+    return None if bmap == 0 else bmap
+            
+            
 class STG4000():
 
     def sleep(self, duration:float):
@@ -70,7 +76,7 @@ class STG4000():
         print('Selecting {0:s}:SN {1:s}'.format(info.DeviceName, info.SerialNumber))            
         self._info = info
         self.interface = lambda: BasicInterface(info)
-        self.connected = False
+        self.reset_triggers()
 
     @property
     def name(self):
@@ -182,13 +188,17 @@ class STG4000():
             out =  interface.GetNumberOfTriggerInputs()
         return out
     
-    def stop_stimulation(self, channels:list=[1]):
+    def stop_stimulation(self, channels:list=all):        
+        if channels is all:
+            channels = [c for c in range(self.channel_count)]
         with self.interface() as interface:
-            interface.SendStop(sum(channels))
+            interface.SendStop(System.UInt32(bitmap(channels)))
         
-    def start_stimulation(self, channels:list=[1]):
+    def start_stimulation(self, channels:list=all):
+        if channels is all:
+            channels= [c for c in range(self.channel_count)]
         with self.interface() as interface:
-            interface.SendStart(sum(channels))
+            interface.SendStart(System.UInt32(bitmap(channels)))
 
     def reset_triggers(self):
         channelmap = []
