@@ -1,51 +1,32 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
-
-This is a temporary script file.
 """
-import clr
-from pathlib import Path
-import System
-# %%
-libpath = Path(__file__).parent.parent.parent
-dllpath = libpath / "bin" / "McsUsbNet.dll"
-fullPath = str(dllpath)
-lib = System.Reflection.Assembly.LoadFile(fullPath)
-print(lib.FullName)
-print(lib.Location)
-from Mcs.Usb import *
-#%%
-deviceList = CMcsUsbListNet()
 
-deviceList.Initialize(DeviceEnumNet.MCS_STG_DEVICE)
+from stg import PulseFile, STG4000
+# %%   
+stg =  STG4000()
+print(stg, stg.version)
+p = PulseFile()
 
-print('Found {0:d} STGs'.format(deviceList.GetNumberOfDevices()))
+stg.download(0, *p())    
+stg.start_stimulation([0])
 
-for dev_num in range(0, deviceList.GetNumberOfDevices()):
-   SerialNumber = deviceList.GetUsbListEntry(dev_num).SerialNumber
-   print('Serial Number: {0:s}'.format(SerialNumber))
+stg.sleep(0.5)
+p = PulseFile(intensity=1000, burstcount=600)
+stg.download(0, *p()) 
+stg.start_stimulation([0])
+stg.stop_stimulation()
 
 
-device = CStg200xDownloadNet()
-device.Connect(deviceList.GetUsbListEntry(0))
+for i in range(0, 100, 1):
+    p = PulseFile(intensity=1000, pulsewidth=1*i)
+    stg.download(0, *p()) 
+    stg.start_stimulation([0])
+    stg.sleep(0.5)
 
-
-device.SetVoltageMode();
-
-Amplitude = ([+2000000, -2000000])  # Amplitude in uV
-Duration = ([100000, 100000])  # Duration in us
-
-AmplitudeNet = ([System.Int32(a) for a in Amplitude])
-DurationNet  = ([System.UInt64(d) for d in Duration])
-
-device.PrepareAndSendData(0, Amplitude, Duration, STG_DestinationEnumNet.channeldata_voltage)
-device.SendStart(1)
-
-device.PrepareAndSendData(1, Amplitude, Duration, STG_DestinationEnumNet.channeldata_voltage)
-device.SendStart(2)
-#
-#device.Disconnect()
-#
-#del deviceList
-#del device
+stg.reset_triggers()
+while True:    
+    p = PulseFile(intensity=1000, pulsewidth=2)
+    stg.download(0, *p()) 
+    stg.start_stimulation([0,1])
+    stg.sleep(0.25)

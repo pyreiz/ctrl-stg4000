@@ -35,8 +35,8 @@ class PulseFile():
         durs = [d for d in chain(self.pulsewidth, [self.isi])] 
         amps = chain(*repeat(amps, self.burstcount)) #repeat
         durs = chain(*repeat(durs, self.burstcount))# repeat 
-        amps = [a for a in map(lambda x : x*1000, amps)] #scale and make static
-        durs = [d for d in map(lambda x : x*1000, durs)] #scale 
+        amps = [a for a in map(lambda x : x*1000, amps)] #scale to uA 
+        durs = [d for d in map(lambda x : x*1000, durs)] #scale to us
         return amps, durs
 
     def __call__(self):
