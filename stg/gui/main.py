@@ -8,7 +8,10 @@ class Intensity():
     
     def __init__(self, labels, bumin, buplus, repetitive_button, download_foo, fuse):
         self.labels = labels
+        self.bc = 1
+        self.isi = 1
         self.repetitive_button = repetitive_button
+        self.repetitive_button.toggled.connect(self.burstcount_was_changed)
         self.download = download_foo
         self.fuse = fuse
         for l, b in zip(labels, bumin):
@@ -40,15 +43,21 @@ class Intensity():
             #print(i, 10**i, v, lbl.text())
             intensity += (v * (10**i))
         intensity = intensity*10 #in uA
-        print('Set to ', intensity/1000, 'mA')
-        burstcount= 60 if self.repetitive_button.isChecked() else 1
-        isi = 49 if self.repetitive_button.isChecked() else 1
+        print('Set to ', intensity/1000, 'mA')        
+        
         p = PulseFile(intensity=intensity, 
                       mode='biphasic',
                       pulsewidth=.5,
-                      burstcount=burstcount,                  
-                      isi=isi)   
+                      burstcount=self.bc,                  
+                      isi=self.isi)   
         return p
+    
+    def burstcount_was_changed(self):
+        
+        self.bc = 60 if self.bc == 1 else 1
+        self.isi = 49 if self.isi == 1  else 1
+        print(f'Changed to {self.bc} and {self.isi}')        
+        self.compile_and_download()
         
     def compile_and_download(self):
         p = self.compile()
@@ -61,39 +70,31 @@ class MainWindow(QtWidgets.QMainWindow):
     def trigger(self, channel):
         if channel == 0:
             print('Compiling for channel 1')
-            if not self.ui.Arb_repetitive.isChecked():
-                self.Aintensity.compile_and_download() 
-            else:
-                p = self.Aintensity.compile()
-                p.burstcount= 60 
-                self.device.download(0, *p())
+            self.Aintensity.compile_and_download() 
         
         elif channel == 1:
             print('Compiling for channel 2')            
-            if not self.ui.Brb_repetitive.isChecked():
-                self.Bintensity.compile_and_download() 
-            else:
-                p = self.Bintensity.compile()
-                p.burstcount= 60 
-                self.device.download(1, *p())
-                        
+            self.Bintensity.compile_and_download() 
+
         self.device.start_stimulation([channel])
         self.ui.Fuse.setEnabled(True)
         
     def fuse(self):
-         p = self.Aintensity.compile()
-         p.burstcount= 1
-         self.device.download(0, *p())
-         p = self.Bintensity.compile()
-         p.burstcount= 1
-         self.device.download(1, *p())
-         self.ui.Fuse.setEnabled(False)
+        p = self.Aintensity.compile()
+        p.burstcount= 1
+        self.device.download(0, *p())
+        p = self.Bintensity.compile()
+        p.burstcount= 1
+        self.device.download(1, *p())
+        self.ui.Arb_sp.setChecked(True)
+        self.ui.Brb_sp.setChecked(True)
+        self.ui.Fuse.setEnabled(False)
         
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.device = STG4000()
         import os, pathlib
         os.chdir(pathlib.Path(__file__).parent)
+        self.device = STG4000()      
         self.ui = uic.loadUi("mainwindow.ui", self)
         fuse = self.ui.Fuse
         self.ui.Device.setText(str(self.device))
@@ -115,6 +116,8 @@ class MainWindow(QtWidgets.QMainWindow):
           
         self.ui.StopAll.clicked.connect(lambda:self.device.stop_stimulation(all))
         self.ui.Fuse.clicked.connect(self.fuse)
+        self.ui.Export.clicked.connect(lambda:print("Export"))
+
         
 # %%     
 def main():    
@@ -125,5 +128,5 @@ def main():
     app.exec_()
     app.aboutToQuit.connect(lambda:print('Goodbye'))    
 
-if __name__ == '__main__':
+if __name__ == '__main__':    
     main()
