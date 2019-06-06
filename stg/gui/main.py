@@ -1,8 +1,8 @@
 from PyQt5 import QtWidgets, uic
 import sys
 from functools import partial
-import time
 from stg import STG4000, PulseFile
+from stg.stm import dump
 #%%
 class Intensity():
     
