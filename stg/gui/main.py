@@ -1,5 +1,7 @@
 from PyQt5 import QtWidgets, uic
+from PyQt5.QtWidgets import QFileDialog
 import sys
+import pathlib
 from functools import partial
 from stg import STG4000, PulseFile
 from stg.stm import dump
@@ -43,7 +45,8 @@ class Intensity():
             #print(i, 10**i, v, lbl.text())
             intensity += (v * (10**i))
         intensity = intensity*10 #in uA
-        print('Set to ', intensity/1000, 'mA')        
+        print('Set to ', intensity/1000, 'mA',  self.bc, ' pulses at ',
+              1000/(1+self.isi) , 'Hz')        
         
         p = PulseFile(intensity=intensity, 
                       mode='biphasic',
@@ -56,7 +59,7 @@ class Intensity():
         
         self.bc = 60 if self.bc == 1 else 1
         self.isi = 49 if self.isi == 1  else 1
-        print(f'Changed to {self.bc} and {self.isi}')        
+        print(f'Changed to')        
         self.compile_and_download()
         
     def compile_and_download(self):
@@ -80,16 +83,29 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.Fuse.setEnabled(True)
         
     def fuse(self):
-        p = self.Aintensity.compile()
-        p.burstcount= 1
-        self.device.download(0, *p())
-        p = self.Bintensity.compile()
-        p.burstcount= 1
-        self.device.download(1, *p())
         self.ui.Arb_sp.setChecked(True)
         self.ui.Brb_sp.setChecked(True)
+        p0 = self.Aintensity.compile()
+        self.device.download(0, *p0())
+        p1 = self.Bintensity.compile()        
+        self.device.download(1, *p1())
         self.ui.Fuse.setEnabled(False)
+        return (p0, p1)
         
+    def export(self):          
+        path = pathlib.Path('~/Desktop').expanduser().absolute()
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        filename, _ = QFileDialog.getSaveFileName(self,
+                                                  "QFileDialog.getSaveFileName()",
+                                                  str(path),
+                                                  "Dat Files (*.dat);;All Files (*)", 
+                                                  options=options)
+        if filename:
+            (p0, p1) = self.fuse()                       
+            dump(filename=filename, pulsefiles=(p0, p1))
+            print(f'Saving to {filename}')
+    
     def __init__(self, parent=None):
         super().__init__(parent)
         import os, pathlib
@@ -116,7 +132,7 @@ class MainWindow(QtWidgets.QMainWindow):
           
         self.ui.StopAll.clicked.connect(lambda:self.device.stop_stimulation(all))
         self.ui.Fuse.clicked.connect(self.fuse)
-        self.ui.Export.clicked.connect(lambda:print("Export"))
+        self.ui.Export.clicked.connect(self.export)
 
         
 # %%     

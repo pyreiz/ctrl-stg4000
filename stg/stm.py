@@ -57,7 +57,7 @@ def encode(pulsefile, channel:int=0):
     stim_info.extend(stim_commands)
     return stim_info
 
-def dump(filename:str="~/Desktop/test.dat", *pulsefiles):
+def dump(filename:str="~/Desktop/test.dat", pulsefiles:list=None):
     fname = Path(str(filename)).expanduser().absolute()
     init_datfile(fname)
     with fname.open('r') as f:
@@ -68,8 +68,7 @@ def dump(filename:str="~/Desktop/test.dat", *pulsefiles):
         lines.extend(encode(pulsefile, channel=idx))
     with fname.open('w') as f:
         for line in lines:
-            f.write(line)
-            
+            f.write(line)                        
 
 # --------
 class PulseFile():    
