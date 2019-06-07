@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='stg',
-    version='0.0.1',
+    version='0.1.0',
     description='Control multichannelsystems STG 4002/4/8.',
     long_description='Toolbox to control  multichannelsystems STG 4002/4/8 via MCS.USB.DLL',
     author='Robert Guggenberger',
@@ -11,7 +11,8 @@ setup(
     download_url='https://github.com/pyreiz/app-stg4000.git',
     license='MIT',
     packages=['stg'],
-    entry_points = {'console_scripts': ['stg4000-pulsegui=stg.gui.main:main'],
+    install_requires=['pythonnet'],
+    entry_points = {'gui_scripts': ['stg4000-pulsegui=stg.gui.main:main'],
                    },
     classifiers=[
         'Development Status :: 4 - Beta',
