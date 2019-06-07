@@ -12,7 +12,7 @@ setup(
     license='MIT',
     packages=['stg'],
     install_requires=['pythonnet'],
-    entry_points = {'gui_scripts': ['stg4000-pulsegui=stg.gui.main:main'],
+    entry_points = {'console_scripts': ['stg4000-pulsegui=stg.gui.main:main'],
                    },
     classifiers=[
         'Development Status :: 4 - Beta',

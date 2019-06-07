@@ -58,8 +58,7 @@ class Intensity():
     def burstcount_was_changed(self):
         
         self.bc = 60 if self.bc == 1 else 1
-        self.isi = 49 if self.isi == 1  else 1
-        print(f'Changed to')        
+        self.isi = 49 if self.isi == 1  else 1       
         self.compile_and_download()
         
     def compile_and_download(self):
@@ -83,6 +82,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.Fuse.setEnabled(True)
         
     def fuse(self):
+        print("Fusing")
         self.ui.Arb_sp.setChecked(True)
         self.ui.Brb_sp.setChecked(True)
         p0 = self.Aintensity.compile()
@@ -134,7 +134,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.Fuse.clicked.connect(self.fuse)
         self.ui.Export.clicked.connect(self.export)
 
-        
+    def closeEvent(self, event):
+        self.fuse()
 # %%     
 def main():    
     app = QtWidgets.QApplication(sys.argv)
@@ -142,7 +143,10 @@ def main():
 #    self = window
     window.show()
     app.exec_()
-    app.aboutToQuit.connect(lambda:print('Goodbye'))    
+    def on_close():
+        print("Shutting down")
+        
+    app.aboutToQuit.connect(on_close)    
 
 if __name__ == '__main__':    
     main()
