@@ -10,7 +10,7 @@ The dll allows to set stimulation settings in stream or download mode. Currently
 git clone https://github.com/pyreiz/app-stg4000
 cd app-stg4000
 pip install -e .
-python -m post_setup.py
+python post_setup.py
 ```
 The last command downloads and unzips the most recent 64-bit dll from multichannelsystems into ```./bin```
 
