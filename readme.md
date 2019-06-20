@@ -1,6 +1,6 @@
 ### STG4000 
 
-This package wraps the C# dll ```McsUsbNet.dll``` for remote control of the multichannelsystem STG4002/4/8 in Python 3. The dll can be acquired from multichannelsystems directly at https://www.multichannelsystems.com/software/mcsusbnetdll
+This package wraps the C# dll ```McsUsbNet.dll``` for remote control of the multichannelsystem STG4002/4/8 in Python 3. The dll can be acquired from multichannelsystems directly at https://www.multichannelsystems.com/software/mcsusbnetdll or installed by script, i.e. by running ```python post_setup.py```.
 
 The dll allows to set stimulation settings in stream or download mode. Currently, this package only supports download mode.
 
