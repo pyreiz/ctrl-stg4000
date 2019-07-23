@@ -284,6 +284,15 @@ class STG4000():
         with self.interface() as interface:
             interface.SetupTrigger(0, channelmap, syncoutmap, repeat);        
     
+    def download_smart(self, channel_index:int=0,
+                       amplitudes_in_mA:List[float, ]=[0],
+                       durations_in_ms:List[float, ]=[0]):
+        
+        amplitudes = [int(a*1000_000) for a in amplitudes_in_mA]
+        durations = [int(s*1000) for s in durations_in_ms]
+        self.download(channel_index, amplitudes, durations, "current")
+        
+    
     def download(self, channel_index:List[int,]=0, amplitude:List[int,]=[0], 
                  duration:list=[20], mode='current'):
         """Download a stimulation signal 
@@ -305,7 +314,14 @@ class STG4000():
             whether the channel should be current or voltage controlled. Based
             on this the units of amplitude are µA (current) or µV (voltage).        
         
-        
+        .. example::
+            
+             mcs.download(channel_index = 0,
+                          amplitude = [1000000, -1000000, 0],
+                          duration = [100, 100, 48800],
+                          mode="current")
+             sets the first channel to a biphasic pulse with 100µs duration
+             each and an amplitude of 1000µA or 1mA
         
         notes:
            The signal is downloaded with  interface.PrepareAndSendData, 

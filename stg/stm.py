@@ -71,6 +71,7 @@ def dump(filename:str="~/Desktop/test.dat", pulsefiles:list=None):
             f.write(line)                        
 
 # --------
+                        
 class PulseFile():    
     '''STG4000 signal
     
@@ -80,7 +81,7 @@ class PulseFile():
     def __init__(self,
                  intensity:int=1000, #in microamps, i.e. 1000 -> 1 mA
                  mode:str='biphasic',
-                 pulsewidth:int=1, #in milliseconds, i.e. 10 -> 1ms
+                 pulsewidth:int=1, #in 10th of milliseconds, i.e. 10 -> 1ms
                  burstcount:int=1, 
                  isi:int=48): #in milliseconds, i.e. 48 -> 48ms
                 
