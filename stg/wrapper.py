@@ -287,14 +287,14 @@ class STG4000():
     def download_smart(self, channel_index:int=0,
                        amplitudes_in_mA:List[float, ]=[0],
                        durations_in_ms:List[float, ]=[0]):
-        
-        amplitudes = [int(a*1000_000) for a in amplitudes_in_mA]
-        durations = [int(s*1000) for s in durations_in_ms]
-        self.download(channel_index, amplitudes, durations, "current")
-        
+
+        print("Deprecated, use download instead")        
+        self.download(channel_index, amplitudes_in_mA, durations_in_ms)        
     
-    def download(self, channel_index:List[int,]=0, amplitude:List[int,]=[0], 
-                 duration:list=[20], mode='current'):
+    def download(self, channel_index:int=0,
+                 amplitudes_in_mA:List[float, ]=[0],
+                 durations_in_ms:List[float, ]=[0]):
+        
         """Download a stimulation signal 
         
         The signal is compressed to amplitudes and their respective durations 
@@ -305,28 +305,33 @@ class STG4000():
         channel_index:int
             The index of the channel for which to download the signal. Indexing
             starts at 0
-        amplitude:List[int,]
-            a list of amplitudes in µA/µV delivered for the corresponding duration 
-        duration:List[int,]
-            a list of durations in µs determing how long each corresponding 
+        amplitude:List[float,]
+            a list of amplitudes in mA/mV delivered for the corresponding duration 
+        duration:List[float,]
+            a list of durations in ms determing how long each corresponding 
             amplitude is delivered
-        mode:str {'current', 'voltage'}
-            whether the channel should be current or voltage controlled. Based
-            on this the units of amplitude are µA (current) or µV (voltage).        
-        
+
         .. example::
             
              mcs.download(channel_index = 0,
-                          amplitude = [1000000, -1000000, 0],
-                          duration = [100, 100, 48800],
-                          mode="current")
+                          amplitude = [1, -1, 0],
+                          duration = [.1, .1, .488])
              sets the first channel to a biphasic pulse with 100µs duration
-             each and an amplitude of 1000µA or 1mA
+             each and an amplitude of 1000µA, i.e 1mA.
         
         notes:
            The signal is downloaded with  interface.PrepareAndSendData, 
            therefore previous data sent to that channel is erased first.
         """
+        
+        amplitudes = [int(a*1000_000) for a in amplitudes_in_mA]
+        durations = [int(s*1000) for s in durations_in_ms]
+        self._download(channel_index, amplitudes, durations, "current")
+        
+    
+    def _download(self, channel_index:List[int,]=0, amplitude:List[int,]=[0], 
+                 duration:list=[20], mode='current'):
+     
         if len(amplitude) != len(duration):
             raise ValueError("Every amplitude needs a duration and vice versa!")
         amplitude = ([System.Int32(a) for a in amplitude])

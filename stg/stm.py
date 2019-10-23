@@ -71,8 +71,45 @@ def dump(filename:str="~/Desktop/test.dat", pulsefiles:list=None):
             f.write(line)                        
 
 # --------
-                        
 class PulseFile():    
+    '''STG4000 signal
+    
+    A thin wrapper for the parametric generation of stimulation signals
+    '''
+    
+    def __init__(self,
+                 intensity_in_mA:float=1,
+                 mode:str='biphasic',
+                 pulsewidth_in_ms:float=.1,
+                 burstcount:int=1, 
+                 isi_in_ms:int=48):
+                        
+        if mode == 'biphasic':
+            intensity_in_mA = [intensity_in_mA, -intensity_in_mA]
+            pulsewidth_in_ms = [pulsewidth_in_ms, pulsewidth_in_ms]
+
+        self.intensity = list(intensity_in_mA)
+        self.mode = mode
+        self.pulsewidth = pulsewidth_in_ms
+        self.burstcount = burstcount
+        self.isi = isi_in_ms
+            
+    def compile(self):    
+        amps = [a for a in chain(self.intensity, [0])]        
+        durs = [d for d in chain(self.pulsewidth, [self.isi])] 
+        amps = chain(*repeat(amps, self.burstcount)) #repeat
+        durs = chain(*repeat(durs, self.burstcount))# repeat 
+        return list(amps), list(durs)
+
+    def __call__(self):
+        return self.compile()
+
+    def dump(self, fname):
+        dump(fname,self)
+
+
+
+class DeprecatedPulseFile():    
     '''STG4000 signal
     
     A thin wrapper for the parametric generation of stimulation signals
@@ -83,8 +120,9 @@ class PulseFile():
                  mode:str='biphasic',
                  pulsewidth:int=1, #in 10th of milliseconds, i.e. 10 -> 1ms
                  burstcount:int=1, 
-                 isi:int=48): #in milliseconds, i.e. 48 -> 48ms
-                
+                 isi:int=48.8): #in milliseconds, i.e. 48 -> 48ms
+        
+        print(self, "is deprecated!")
         if mode == 'biphasic':
             intensity = [intensity, -intensity]
             pulsewidth = [pulsewidth, pulsewidth]
@@ -103,7 +141,7 @@ class PulseFile():
         durs = chain(*repeat(durs, self.burstcount))# repeat 
         amps = [a for a in map(lambda x : x*1000, amps)] #scale to uA 
         durs = [d for d in map(lambda x : x*1000, durs)] #scale to us
-        return amps, durs
+        return list(amps), list(durs)
 
     def __call__(self):
         return self.compile()
