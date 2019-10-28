@@ -22,8 +22,8 @@ stim = STG4000()
 # download a biphasic single pulse with an amplitude of +- 1mA, a pulsewidth of 1ms and a 
 # interstimulusinterval of 48ms to the first channel. Channel indexing starts at 0.
 
-stim.download(channel_index=0, amplitude=[1000000, -1000000, 0],
-            duration=[1000, 1000, 48000])
+stim.download(channel_index=0, amplitude=[1, -1, 0],
+            duration=[1, 1, 48000])
 
 # start the stimulation
 stim.start_stimulation([0]) #trigger the first channel
