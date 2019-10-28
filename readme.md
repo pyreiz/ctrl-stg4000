@@ -34,7 +34,7 @@ stim.start_stimulation()
 ```python
 # for convenience, there is also a PulseFile class implemented
 from stg import PulseFile
-p = PulseFile(intensity=1000, #in microamps, i.e. 1000 -> 1 mA
+p = PulseFile(intensity_in_mA=1000, #in microamps, i.e. 1000 -> 1 mA
             mode='biphasic', # can alternatively be monophasic
             pulsewidth=1, #in milliseconds, i.e. 10 -> 1ms
             burstcount=3, # number of repetitions
