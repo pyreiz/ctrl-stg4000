@@ -36,9 +36,9 @@ stim.start_stimulation()
 from stg import PulseFile
 p = PulseFile(intensity_in_mA=1000, #in microamps, i.e. 1000 -> 1 mA
             mode='biphasic', # can alternatively be monophasic
-            pulsewidth=1, #in milliseconds, i.e. 10 -> 1ms
+            pulsewidth_in_ms=1, #in milliseconds, i.e. 1 -> 1ms
             burstcount=3, # number of repetitions
-            isi=48, #in milliseconds, i.e. 48 -> 48ms
+            isi_in_ms=48, #in milliseconds, i.e. 48 -> 48ms
             )
 amplitude, duration = p.compile()
 stim.download(1, amplitude, duration)
