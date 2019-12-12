@@ -6,6 +6,8 @@ Created on Tue Jun  4 14:38:43 2019
 """
 from itertools import chain, repeat, accumulate
 from pathlib import Path
+from typing import Tuple, List
+
 # %%
 
 
@@ -14,22 +16,25 @@ def init_datfile(filename: str = "~/Desktop/test.dat"):
     if fname.suffix == "":
         fname = fname.with_suffix(".dat")
     if fname.suffix != ".dat":
-        raise ValueError('Only .dat files can be saved')
+        raise ValueError("Only .dat files can be saved")
 
-    stim_info = ['Multi Channel Systems MC_Stimulus II\n',
-                 'ASCII import Version 1.10\n',
-                 '\n',
-                 'channels: 2\n',
-                 '\n',
-                 'output mode: current\n',
-                 '\n',
-                 'format: 4\n',
-                 '\n'
-                 ]  # : the header for every MCS II .dat file
+    stim_info = [
+        "Multi Channel Systems MC_Stimulus II\n",
+        "ASCII import Version 1.10\n",
+        "\n",
+        "channels: 2\n",
+        "\n",
+        "output mode: current\n",
+        "\n",
+        "format: 4\n",
+        "\n",
+    ]  # : the header for every MCS II .dat file
 
-    with fname.open('w') as f:
+    with fname.open("w") as f:
         for line in stim_info:
             f.write(line)
+
+
 # ---------
 
 
@@ -43,18 +48,20 @@ def encode(pulsefile, channel: int = 0):
     channel:int
         the channel, indexing starts at 0
     """
-    stim_info = [f'channel: {channel+1}\n',
-                 '\n',
-                 'value\ttime\n']  # : the header for every channel
+    stim_info = [
+        f"channel: {channel+1}\n",
+        "\n",
+        "value\ttime\n",
+    ]  # : the header for every channel
 
     stim_commands = []
     for bc in range(0, pulsefile.burstcount):
         for amp, pw in zip(pulsefile.intensity, pulsefile.pulsewidth):
-            newline = f'{amp}\t{pw*1000}\n'  # scale to µA/µs
+            newline = f"{amp}\t{pw*1000}\n"  # scale to µA/µs
 
             stim_commands.append(newline)
 
-        newline = f'0\t{pulsefile.isi*1000}\n'  # scale to µs
+        newline = f"0\t{pulsefile.isi*1000}\n"  # scale to µs
         stim_commands.append(newline)
 
     stim_info.extend(stim_commands)
@@ -64,33 +71,36 @@ def encode(pulsefile, channel: int = 0):
 def dump(filename: str = "~/Desktop/test.dat", pulsefiles: list = None):
     fname = Path(str(filename)).expanduser().absolute()
     init_datfile(fname)
-    with fname.open('r') as f:
+    with fname.open("r") as f:
         lines = f.readlines()
     for idx, pulsefile in enumerate(pulsefiles):
         if idx > 0:
-            lines.append('\n')
+            lines.append("\n")
         lines.extend(encode(pulsefile, channel=idx))
-    with fname.open('w') as f:
+    with fname.open("w") as f:
         for line in lines:
             f.write(line)
+
 
 # --------
 
 
-class PulseFile():
-    '''STG4000 signal
+class PulseFile:
+    """STG4000 signal
 
     A thin wrapper for the parametric generation of stimulation signals
-    '''
+    """
 
-    def __init__(self,
-                 intensity_in_mA: float = 1,
-                 mode: str = 'biphasic',
-                 pulsewidth_in_ms: float = .1,
-                 burstcount: int = 1,
-                 isi_in_ms: int = 49.8):
+    def __init__(
+        self,
+        intensity_in_mA: float = 1,
+        mode: str = "biphasic",
+        pulsewidth_in_ms: float = 0.1,
+        burstcount: int = 1,
+        isi_in_ms: int = 49.8,
+    ):
 
-        if mode == 'biphasic':
+        if mode == "biphasic":
             intensity_in_mA = [intensity_in_mA, -intensity_in_mA]
             pulsewidth_in_ms = [pulsewidth_in_ms, pulsewidth_in_ms]
 
@@ -101,6 +111,14 @@ class PulseFile():
         self.isi = isi_in_ms
 
     def compile(self):
+        """compile the pulsefile to amps and durs
+        returns
+        ------
+        amps: List[float]
+            a list of amplitudes
+        durs: List[float]
+            a list of durations
+        """
         amps = [a for a in chain(self.intensity, [0])]
         durs = [d for d in chain(self.pulsewidth, [self.isi])]
         amps = chain(*repeat(amps, self.burstcount))  # repeat
@@ -119,21 +137,58 @@ class PulseFile():
         dump(fname, self)
 
 
-class DeprecatedPulseFile():
-    '''STG4000 signal
+def repeat_bursts(
+    pf: PulseFile, ibi_in_ms: float, count: int
+) -> Tuple[List[float], List[float]]:
+    """compile and repeat a pulsefile separated by ibi_in_ms
+
+    args
+    ----
+
+    pf: PulseFile
+        defines a burst
+    ibi_in_ms: float
+        how long to wait between bursts
+    count: int
+        how many bursts you want to apply
+
+
+    returns
+    ------
+    amps: List[float]
+        a list of amplitudes
+    durs: List[float]
+        a list of durations
+    """
+    inamps, indurs = pf.compile()
+    for cnt in range(count):
+        if cnt == 0:
+            amps, durs = inamps[:], indurs[:]
+        else:
+            amps += [0]
+            durs += [ibi_in_ms]
+            amps += inamps
+            durs += indurs
+    return amps, durs
+
+
+class DeprecatedPulseFile:
+    """STG4000 signal
 
     A thin wrapper for the parametric generation of stimulation signals
-    '''
+    """
 
-    def __init__(self,
-                 intensity: int = 1000,  # in microamps, i.e. 1000 -> 1 mA
-                 mode: str = 'biphasic',
-                 pulsewidth: int = 1,  # in 10th of milliseconds, i.e. 10 -> 1ms
-                 burstcount: int = 1,
-                 isi: int = 48.8):  # in milliseconds, i.e. 48 -> 48ms
+    def __init__(
+        self,
+        intensity: int = 1000,  # in microamps, i.e. 1000 -> 1 mA
+        mode: str = "biphasic",
+        pulsewidth: int = 1,  # in 10th of milliseconds, i.e. 10 -> 1ms
+        burstcount: int = 1,
+        isi: int = 48.8,
+    ):  # in milliseconds, i.e. 48 -> 48ms
 
         print(self, "is deprecated!")
-        if mode == 'biphasic':
+        if mode == "biphasic":
             intensity = [intensity, -intensity]
             pulsewidth = [pulsewidth, pulsewidth]
 
@@ -148,8 +203,8 @@ class DeprecatedPulseFile():
         durs = [d for d in chain(self.pulsewidth, [self.isi])]
         amps = chain(*repeat(amps, self.burstcount))  # repeat
         durs = chain(*repeat(durs, self.burstcount))  # repeat
-        amps = [a for a in map(lambda x: x*1000, amps)]  # scale to uA
-        durs = [d for d in map(lambda x: x*1000, durs)]  # scale to us
+        amps = [a for a in map(lambda x: x * 1000, amps)]  # scale to uA
+        durs = [d for d in map(lambda x: x * 1000, durs)]  # scale to us
         return list(amps), list(durs)
 
     def __call__(self):
@@ -157,4 +212,6 @@ class DeprecatedPulseFile():
 
     def dump(self, fname):
         dump(fname, self)
+
+
 # %%
