@@ -1,5 +1,6 @@
 from stg.pulsefile import repeat_pulsefile, PulseFile, dump
 import pytest
+from pathlib import Path
 
 
 # @pytest.mark.parametrize("mode", ["biphasic", "monophasic"])
@@ -74,55 +75,60 @@ def test_dump():
             dump([], fname.name)
 
     pf = PulseFile()
-    with NamedTemporaryFile(suffix=".dat") as fname:
-        pf.dump(fname.name)
-        content = fname.readlines()
+    fname = "test1.dat"
+    # with NamedTemporaryFile(suffix=".dat") as fname:
+    pf.dump(fname)
+    with open(fname) as f:
+        content = f.readlines()
+    Path(fname).unlink()
     exp = [
-        b"Multi Channel Systems MC_Stimulus II\n",
-        b"ASCII import Version 1.10\n",
-        b"\n",
-        b"channels: 2\n",
-        b"\n",
-        b"output mode: current\n",
-        b"\n",
-        b"format: 4\n",
-        b"\n",
-        b"channel: 1\n",
-        b"\n",
-        b"value\ttime\n",
-        b"1\t100.0\n",
-        b"-1\t100.0\n",
-        b"0\t49800.0\n",
+        "Multi Channel Systems MC_Stimulus II\n",
+        "ASCII import Version 1.10\n",
+        "\n",
+        "channels: 2\n",
+        "\n",
+        "output mode: current\n",
+        "\n",
+        "format: 4\n",
+        "\n",
+        "channel: 1\n",
+        "\n",
+        "value\ttime\n",
+        "1\t100.0\n",
+        "-1\t100.0\n",
+        "0\t49800.0\n",
     ]
     for o, e in zip(content, exp):
         assert o == e
 
-    with NamedTemporaryFile(suffix=".dat") as fname:
-        dump([pf, pf], fname.name)
-        content = fname.readlines()
+    fname = "test2.dat"
+    dump([pf, pf], fname)
+    with open(fname) as f:
+        content = f.readlines()
+    Path(fname).unlink()
     exp = [
-        b"Multi Channel Systems MC_Stimulus II\n",
-        b"ASCII import Version 1.10\n",
-        b"\n",
-        b"channels: 2\n",
-        b"\n",
-        b"output mode: current\n",
-        b"\n",
-        b"format: 4\n",
-        b"\n",
-        b"channel: 1\n",
-        b"\n",
-        b"value\ttime\n",
-        b"1\t100.0\n",
-        b"-1\t100.0\n",
-        b"0\t49800.0\n",
-        b"\n",
-        b"channel: 2\n",
-        b"\n",
-        b"value\ttime\n",
-        b"1\t100.0\n",
-        b"-1\t100.0\n",
-        b"0\t49800.0\n",
+        "Multi Channel Systems MC_Stimulus II\n",
+        "ASCII import Version 1.10\n",
+        "\n",
+        "channels: 2\n",
+        "\n",
+        "output mode: current\n",
+        "\n",
+        "format: 4\n",
+        "\n",
+        "channel: 1\n",
+        "\n",
+        "value\ttime\n",
+        "1\t100.0\n",
+        "-1\t100.0\n",
+        "0\t49800.0\n",
+        "\n",
+        "channel: 2\n",
+        "\n",
+        "value\ttime\n",
+        "1\t100.0\n",
+        "-1\t100.0\n",
+        "0\t49800.0\n",
     ]
     for o, e in zip(content, exp):
         assert o == e

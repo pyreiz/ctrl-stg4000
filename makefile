@@ -17,7 +17,7 @@ test: build
 	source .test/bin/activate
 	pip install dist/*.whl
 	pytest
-
+	
 .PHONY: upload
 upload: build
 	twine check dist/*
