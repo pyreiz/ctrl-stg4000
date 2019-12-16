@@ -6,12 +6,13 @@ Created on Tue Jun  4 14:38:43 2019
 """
 from itertools import chain, repeat, accumulate
 from pathlib import Path
-from typing import Tuple, List
+from typing import Tuple, List, Union
 
+FileName = Union[Path, str]
 # %%
 
 
-def init_datfile(filename: str = "~/Desktop/test.dat"):
+def init_datfile(filename: FileName = "~/Desktop/test.dat"):
     fname = Path(str(filename)).expanduser().absolute()
     if fname.suffix == "":
         fname = fname.with_suffix(".dat")
@@ -68,7 +69,7 @@ def encode(pulsefile, channel: int = 0):
     return stim_info
 
 
-def dump(filename: str = "~/Desktop/test.dat", pulsefiles: list = None):
+def dump(pulsefiles: List[PulseFile], filename: FileName = "~/Desktop/test.dat"):
     fname = Path(str(filename)).expanduser().absolute()
     init_datfile(fname)
     with fname.open("r") as f:
@@ -97,18 +98,21 @@ class PulseFile:
         mode: str = "biphasic",
         pulsewidth_in_ms: float = 0.1,
         burstcount: int = 1,
-        isi_in_ms: int = 49.8,
+        isi_in_ms: float = 49.8,
     ):
 
         if mode == "biphasic":
-            intensity_in_mA = [intensity_in_mA, -intensity_in_mA]
-            pulsewidth_in_ms = [pulsewidth_in_ms, pulsewidth_in_ms]
+            intensity = [intensity_in_mA, -intensity_in_mA]
+            pulsewidth = [pulsewidth_in_ms, pulsewidth_in_ms]
+        else:
+            intensity = [intensity_in_mA]
+            pulsewidth = [pulsewidth_in_ms]
 
-        self.intensity = list(intensity_in_mA)
-        self.mode = mode
-        self.pulsewidth = pulsewidth_in_ms
-        self.burstcount = burstcount
-        self.isi = isi_in_ms
+        self.intensity: List[float] = intensity
+        self.pulsewidth: List[float] = pulsewidth
+        self.mode: str = mode
+        self.burstcount: int = burstcount
+        self.isi: float = isi_in_ms
 
     def compile(self):
         """compile the pulsefile to amps and durs

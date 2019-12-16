@@ -13,6 +13,12 @@ dllpath = libpath / "bin" / "McsUsbNet.dll"
 fullPath = str(dllpath)
 lib = System.Reflection.Assembly.LoadFile(fullPath)
 from Mcs.Usb import *
+from Mcs.Usb import (
+    CMcsUsbListNet,
+    DeviceEnumNet,
+    CStg200xDownloadNet,
+    STG_DestinationEnumNet,
+)
 from functools import lru_cache
 from time import sleep
 from typing import List
@@ -114,7 +120,7 @@ class STG4000:
     def __str__(self):
         return self._info.ToString()
 
-    def set_current_mode(self, channel_index: int = all):
+    def set_current_mode(self, channel_index: List[int] = []):
         """set a single or all channels to current mode
         
         args
@@ -124,14 +130,14 @@ class STG4000:
             otherwise, takes an integer of the target channel.
             Indexing starts at 0.        
         """
-        if channel_index is all:
+        if channel_index == []:
             with self.interface() as interface:
                 interface.SetCurrentMode()
         else:
             with self.interface() as interface:
                 interface.SetCurrentMode(System.UInt32(channel_index))
 
-    def set_voltage_mode(self, channel_index: int = all):
+    def set_voltage_mode(self, channel_index: List[int] = []):
         """set a single or all channels to voltage mode
         
         args
@@ -142,7 +148,7 @@ class STG4000:
             Indexing starts at 0.
         
         """
-        if channel_index is all:
+        if channel_index == []:
             with self.interface() as interface:
                 interface.SetVoltageMode()
         else:
@@ -215,13 +221,10 @@ class STG4000:
             out = interface.GetNumberOfTriggerInputs()
         return out
 
-    def stop_stimulation(self, targets: list = all):
+    def stop_stimulation(self, triggerIndex: List[int] = []):
         """stops all trigger inputs or a selection based on a list 
         
-        Triggers are mapped to channels according to the channelmap.
-        Use `~STG4000.diagonalize_triggermap` to normalize the mapping of trigger 
-        to channel to the diagonal identity, i.e. trigin 0 triggers channel 
-        0 and so on.
+        Triggers are mapped to channels according to the channelmap. By default, all triggers are mapped to channels following diagonal identity, i.e. trigger 0 maps to channel 0. This is done during initialization of the STG4000 object. Use :meth:`~STG4000.diagonalize_triggermap` to repeat this normalization.
         
         args
         ----
@@ -233,18 +236,15 @@ class STG4000:
         
         """
 
-        if targets is all:
-            targets = [c for c in range(self.channel_count)]
+        if triggerIndex == []:
+            triggerIndex = [c for c in range(self.channel_count)]
         with self.interface() as interface:
-            interface.SendStop(System.UInt32(bitmap(targets)))
+            interface.SendStop(System.UInt32(bitmap(triggerIndex)))
 
-    def start_stimulation(self, channels: list = all):
+    def start_stimulation(self, triggerIndex: List[int] = []):
         """starts all trigger inputs or a selection based on a list 
         
-        Triggers are mapped to channels according to the channelmap.
-        Use `~STG4000.diagonalize_triggermap` to normalize the mapping of trigger 
-        to channel to the diagonal identity, i.e. trigin 0 triggers channel 
-        0 and so on.
+        Triggers are mapped to channels according to the channelmap. By default, all triggers are mapped to channels following diagonal identity, i.e. trigger 0 maps to channel 0. This is done during initialization of the STG4000 object. Use :meth:`~STG4000.diagonalize_triggermap` to repeat this normalization.
         
         args
         ----
@@ -256,10 +256,10 @@ class STG4000:
         
         """
 
-        if channels is all:
-            channels = [c for c in range(self.channel_count)]
+        if triggerIndex is []:
+            triggerIndex = [c for c in range(self.channel_count)]
         with self.interface() as interface:
-            interface.SendStart(System.UInt32(bitmap(channels)))
+            interface.SendStart(System.UInt32(bitmap(triggerIndex)))
 
     def diagonalize_triggermap(self):
         """Normalize the channelmap to a diagonal
@@ -267,8 +267,13 @@ class STG4000:
         Triggers are mapped to channels according to the channelmap. This is 
         done at the lower level with interface.SetupTrigger. 
         
-        Use this function to normalize the mapping of trigger to channel to the 
-        diagonal identity, i.e. trigin 0 triggers channel 0 and so on.
+        Use this function to normalize the mapping of trigger to channel to a diagonal identity, i.e. trigger 0 maps to channel 0,  so on.
+
+            +----------+---+---+---+---+---+---+---+---+
+            | Trigger  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+            +----------+---+---+---+---+---+---+---+---+
+            | Channel  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+            +----------+---+---+---+---+---+---+---+---+
         
         """
         channelmap = []
@@ -319,12 +324,12 @@ class STG4000:
 
         amplitudes = [int(a * 1000_000) for a in amplitudes_in_mA]
         durations = [int(s * 1000) for s in durations_in_ms]
-        self._download(channel_index, amplitudes, durations, "current")
+        self._download([channel_index], amplitudes, durations, "current")
 
     def _download(
         self,
-        channel_index: List[int,] = 0,
-        amplitude: List[int,] = [0],
+        channel_index: List[int] = [0],
+        amplitude: List[int] = [0],
         duration: list = [20],
         mode="current",
     ):

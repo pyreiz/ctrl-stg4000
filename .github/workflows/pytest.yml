@@ -1,0 +1,37 @@
+name: pytest
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install dependencies
+      run: |
+        pip install -U pip
+        pip install git+https://github.com/labstreaminglayer/liblsl-Python.git 
+        pip install -r requirements.txt
+        pip install .
+    - name: Test with pytest
+      run: |
+        pip install coverage
+        pip install pytest-cov
+        pip install pytest
+        pytest
+    - name: Submit coverage report
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALL_SECRET }}
+      run: |
+        pip install coveralls
+        coveralls
+    - name: Static type checking
+      run: |
+        pip install mypy
+        mypy

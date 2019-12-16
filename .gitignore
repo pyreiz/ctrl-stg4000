@@ -1,3 +1,4 @@
 *egg*
 */*/__pycache__/*
 */*_pycache_*
+.mypy_cache/**/*
