@@ -9,87 +9,14 @@ from pathlib import Path
 from typing import Tuple, List, Union
 
 FileName = Union[Path, str]
-# %%
-
-
-def init_datfile(filename: FileName = "~/Desktop/test.dat"):
-    fname = Path(str(filename)).expanduser().absolute()
-    if fname.suffix == "":
-        fname = fname.with_suffix(".dat")
-    if fname.suffix != ".dat":
-        raise ValueError("Only .dat files can be saved")
-
-    stim_info = [
-        "Multi Channel Systems MC_Stimulus II\n",
-        "ASCII import Version 1.10\n",
-        "\n",
-        "channels: 2\n",
-        "\n",
-        "output mode: current\n",
-        "\n",
-        "format: 4\n",
-        "\n",
-    ]  # : the header for every MCS II .dat file
-
-    with fname.open("w") as f:
-        for line in stim_info:
-            f.write(line)
-
-
-# ---------
-
-
-def encode(pulsefile, channel: int = 0):
-    """encode a pulsefile into ascii format
-
-    args
-    ----
-    pulsefile:PulseFile
-        a pulsefile
-    channel:int
-        the channel, indexing starts at 0
-    """
-    stim_info = [
-        f"channel: {channel+1}\n",
-        "\n",
-        "value\ttime\n",
-    ]  # : the header for every channel
-
-    stim_commands = []
-    for bc in range(0, pulsefile.burstcount):
-        for amp, pw in zip(pulsefile.intensity, pulsefile.pulsewidth):
-            newline = f"{amp}\t{pw*1000}\n"  # scale to µA/µs
-
-            stim_commands.append(newline)
-
-        newline = f"0\t{pulsefile.isi*1000}\n"  # scale to µs
-        stim_commands.append(newline)
-
-    stim_info.extend(stim_commands)
-    return stim_info
-
-
-def dump(pulsefiles: List[PulseFile], filename: FileName = "~/Desktop/test.dat"):
-    fname = Path(str(filename)).expanduser().absolute()
-    init_datfile(fname)
-    with fname.open("r") as f:
-        lines = f.readlines()
-    for idx, pulsefile in enumerate(pulsefiles):
-        if idx > 0:
-            lines.append("\n")
-        lines.extend(encode(pulsefile, channel=idx))
-    with fname.open("w") as f:
-        for line in lines:
-            f.write(line)
-
-
-# --------
 
 
 class PulseFile:
     """STG4000 signal
 
-    A thin wrapper for the parametric generation of stimulation signals
+    A wrapper object for simpler parametric generation of stimulation signals
+
+    After initialization, run  :meth:`~.compile` to generate amplitudes and durations for downloading with :meth:`~.stg.wrapper.STG4000.download`
     """
 
     def __init__(
@@ -141,7 +68,78 @@ class PulseFile:
         dump(fname, self)
 
 
-def repeat_bursts(
+def init_datfile(filename: FileName = "~/Desktop/test.dat"):
+    fname = Path(str(filename)).expanduser().absolute()
+    if fname.suffix == "":
+        fname = fname.with_suffix(".dat")
+    if fname.suffix != ".dat":
+        raise ValueError("Only .dat files can be saved")
+
+    stim_info = [
+        "Multi Channel Systems MC_Stimulus II\n",
+        "ASCII import Version 1.10\n",
+        "\n",
+        "channels: 2\n",
+        "\n",
+        "output mode: current\n",
+        "\n",
+        "format: 4\n",
+        "\n",
+    ]  # : the header for every MCS II .dat file
+
+    with fname.open("w") as f:
+        for line in stim_info:
+            f.write(line)
+
+
+def encode(pulsefile, channel: int = 0):
+    """encode a pulsefile into ascii format
+
+    args
+    ----
+    pulsefile:PulseFile
+        a pulsefile
+    channel:int
+        the channel, indexing starts at 0
+    """
+    stim_info = [
+        f"channel: {channel+1}\n",
+        "\n",
+        "value\ttime\n",
+    ]  # : the header for every channel
+
+    stim_commands = []
+    for bc in range(0, pulsefile.burstcount):
+        for amp, pw in zip(pulsefile.intensity, pulsefile.pulsewidth):
+            newline = f"{amp}\t{pw*1000}\n"  # scale to µA/µs
+
+            stim_commands.append(newline)
+
+        newline = f"0\t{pulsefile.isi*1000}\n"  # scale to µs
+        stim_commands.append(newline)
+
+    stim_info.extend(stim_commands)
+    return stim_info
+
+
+def dump(pulsefiles: List[PulseFile], filename: FileName = "~/Desktop/test.dat"):
+    fname = Path(str(filename)).expanduser().absolute()
+    init_datfile(fname)
+    with fname.open("r") as f:
+        lines = f.readlines()
+    for idx, pulsefile in enumerate(pulsefiles):
+        if idx > 0:
+            lines.append("\n")
+        lines.extend(encode(pulsefile, channel=idx))
+    with fname.open("w") as f:
+        for line in lines:
+            f.write(line)
+
+
+# --------
+
+
+def repeat_pulsefile(
     pf: PulseFile, ibi_in_ms: float, count: int
 ) -> Tuple[List[float], List[float]]:
     """compile and repeat a pulsefile separated by ibi_in_ms

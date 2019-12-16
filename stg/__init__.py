@@ -1,2 +1,2 @@
-from stg.stm import PulseFile, repeat_bursts
-from stg.wrapper import STG4000
+from stg.pulsefile import PulseFile, repeat_pulsefile
+from stg._wrapper.downloadnet import STG4000
