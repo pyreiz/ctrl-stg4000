@@ -13,12 +13,9 @@ from sys import platform
 if "win" in platform:
     import clr
     import System
+    from stg.install import DLLPATH
 
-    libpath = Path(__file__).parent.parent.parent
-    dllpath = libpath / "bin" / "McsUsbNet.dll"
-    fullPath = str(dllpath)
-    lib = System.Reflection.Assembly.LoadFile(fullPath)
-    from Mcs.Usb import *
+    lib = System.Reflection.Assembly.LoadFile(str(DLLPATH))
     from Mcs.Usb import (
         CMcsUsbListNet,
         DeviceEnumNet,

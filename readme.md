@@ -1,3 +1,5 @@
+ [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License) [![pytest-status](https://github.com/pyreiz/ctrl-stg4000/workflows/pytest/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/pyreiz/ctrl-stg4000/badge.svg?branch=master)](https://coveralls.io/github/pyreiz/ctrl-stg4000?branch=master)
+
 ### STG4000
 
 This package wraps the C# dll ```McsUsbNet.dll``` for remote control of the multichannelsystem STG4002/4/8 in Python 3. The dll can be acquired from multichannelsystems directly at https://www.multichannelsystems.com/software/mcsusbnetdll or installed by script, i.e. by running ```python post_setup.py```.
@@ -17,13 +19,14 @@ The last command downloads and unzips the most recent 64-bit dll from multichann
 #### Downloading a stimulation setting
 
 ```python
-from stg import STG4000
+from stg.api import STG4000
 stim = STG4000()
 # download a biphasic single pulse with an amplitude of +- 1mA, a pulsewidth of 1ms and a
 # interstimulusinterval of 48ms to the first channel. Channel indexing starts at 0.
 
-stim.download(channel_index=0, amplitude=[1, -1, 0],
-            duration=[1, 1, 48000])
+stim.download(channel_index=0,
+              amplitude=[1, -1, 0],
+              duration=[1, 1, 48000])
 
 # start the stimulation
 stim.start_stimulation([0]) #trigger the first channel
@@ -33,7 +36,7 @@ stim.start_stimulation()
 #### Creating and downloading repetitive pulses
 ```python
 # for convenience, there is also a PulseFile class implemented
-from stg import PulseFile
+from stg.api import PulseFile
 p = PulseFile(intensity_in_mA=1000, #in microamps, i.e. 1000 -> 1 mA
             mode='biphasic', # can alternatively be monophasic
             pulsewidth_in_ms=1, #in milliseconds, i.e. 1 -> 1ms
