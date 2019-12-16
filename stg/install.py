@@ -11,24 +11,26 @@ LIBPATH = Path(__file__).parent
 DLLPATH = LIBPATH / "bin" / "McsUsbNet.dll"
 
 
-def download_dll() -> None:
+def download_dll(platform: str) -> None:
     "download the DLL in version 3.2.45 from multichannelsystems"
     url = "http://download.multichannelsystems.com/download_data/software/McsNetUsb/McsUsbNet_3.2.45.zip"
     fname = LIBPATH / "bin" / "McsUsbNet_3.2.45.zip"
     print("Downloading to", str(fname))
-    fname, l = urllib.request.urlretrieve(url, filename=fname)
+    dlname, l = urllib.request.urlretrieve(url, filename=fname)
     print(". Finished")
-    #
-    print(f"Unzipping the {platform.architecture()[0]} dll...", end="")
-    if platform.architecture()[0] == "64bit":
+
+    # unzip
+
+    print(f"Unzipping the {platform} dll...", end="")
+    if platform == "64bit":
         member = "McsUsbNetPackage/x64/McsUsbNet.dll"
     else:
-        member = "McsUsbNet.dll"
-
+        member = "McsUsbNetPackage/McsUsbNet.dll"
     with ZipFile(fname, "r") as f:
-        d = f.extract(member)
+        dll = f.extract(member)
 
-    source = Path(d)
+    # move to desired position
+    source = Path(dll)
     target = LIBPATH / "bin" / source.name
     shutil.move(source, target)
     print(" Unzipped file to", target)
@@ -42,4 +44,4 @@ def download_dll() -> None:
 
 if __name__ == "__main__":
     if not DLLPATH.exists():
-        download_dll()
+        download_dll(platform.architecture()[0])

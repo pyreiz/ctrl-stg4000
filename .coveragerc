@@ -1,0 +1,5 @@
+[run]
+omit =     
+    stg/example/*   
+    stg/install.py
+    

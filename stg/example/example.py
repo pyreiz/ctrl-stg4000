@@ -2,7 +2,7 @@
 """
 """
 
-from stg import PulseFile, STG4000
+from stg.api import PulseFile, STG4000
 
 # %%
 stg = STG4000()
