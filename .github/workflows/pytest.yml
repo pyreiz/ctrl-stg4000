@@ -2,8 +2,9 @@ name: pytest
 
 on: [push]
 
-jobs: 
-    name: pytest-and-mypy
+jobs:
+  job1:
+    name: test-coverage-mypy
     runs-on: ubuntu-latest
 
     steps:
@@ -14,16 +15,23 @@ jobs:
         python-version: 3.7
     - name: Install dependencies
       run: |
-        pip install -U pip
+        python -m pip install --upgrade pip    
+        pip install -U pip        
         pip install .
-        python -m stg.install
     - name: Test with pytest
       run: |
-        pip install coverage
-        pip install pytest-cov
+        pip install coverage==4.5.4
+        pip install pytest-cov        
         pip install pytest
         pytest
+    - name: Submit coverage report
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALL_SECRET }}
+      run: |
+        pip install coveralls
+        coveralls
     - name: Static type checking
       run: |
         pip install mypy
         mypy
+        
