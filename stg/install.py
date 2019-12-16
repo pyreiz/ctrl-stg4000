@@ -28,5 +28,13 @@ def download_dll():
     Path(fname).unlink()
 
 
+def already_installed():
+    libpath = Path(__file__).parent.parent
+    dllpath = libpath / "bin" / "McsUsbNet.dll"
+    fullPath = str(dllpath)
+    return ddlpath.exists()
+
+
 if __name__ == "__main__":
-    download_dll()
+    if not already_installed:
+        download_dll()

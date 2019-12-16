@@ -14,7 +14,7 @@ if "win" in platform:
     import clr
     import System
 
-    libpath = Path(__file__).parent.parent
+    libpath = Path(__file__).parent.parent.parent
     dllpath = libpath / "bin" / "McsUsbNet.dll"
     fullPath = str(dllpath)
     lib = System.Reflection.Assembly.LoadFile(fullPath)
