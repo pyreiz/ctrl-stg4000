@@ -4,25 +4,36 @@ Spyder Editor
 
 This is a temporary script file.
 """
-import clr
 from pathlib import Path
-import System
-
-libpath = Path(__file__).parent.parent
-dllpath = libpath / "bin" / "McsUsbNet.dll"
-fullPath = str(dllpath)
-lib = System.Reflection.Assembly.LoadFile(fullPath)
-from Mcs.Usb import *
-from Mcs.Usb import (
-    CMcsUsbListNet,
-    DeviceEnumNet,
-    CStg200xDownloadNet,
-    STG_DestinationEnumNet,
-)
 from functools import lru_cache
 from time import sleep
 from typing import List
+from sys import platform
 
+if "win" in platform:
+    import clr
+    import System
+
+    libpath = Path(__file__).parent.parent
+    dllpath = libpath / "bin" / "McsUsbNet.dll"
+    fullPath = str(dllpath)
+    lib = System.Reflection.Assembly.LoadFile(fullPath)
+    from Mcs.Usb import *
+    from Mcs.Usb import (
+        CMcsUsbListNet,
+        DeviceEnumNet,
+        CStg200xDownloadNet,
+        STG_DestinationEnumNet,
+    )
+else:
+
+    def _mock(*args, **kwargs):
+        pass
+
+    CMcsUsbListNet = _mock
+    DeviceEnumNet = _mock
+    CStg200xDownloadNet = _mock
+    STG_DestinationEnumNet = _mock
 # %%
 def available(serial: int = None):
     deviceList = CMcsUsbListNet()

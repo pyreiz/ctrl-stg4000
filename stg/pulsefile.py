@@ -31,9 +31,20 @@ class PulseFile:
         if mode == "biphasic":
             intensity = [intensity_in_mA, -intensity_in_mA]
             pulsewidth = [pulsewidth_in_ms, pulsewidth_in_ms]
-        else:
+        elif mode == "monophasic":
             intensity = [intensity_in_mA]
             pulsewidth = [pulsewidth_in_ms]
+        else:
+            raise NotImplementedError(f"Unknown mode {mode}")
+
+        if pulsewidth_in_ms < 0:
+            raise ValueError("Minimum PulseWidth must be 0ms")
+
+        if burstcount < 1:
+            raise ValueError("Minimum BurstCount must be 1")
+
+        if isi_in_ms < 0:
+            raise ValueError("Minimum ISI must be 0ms")
 
         self.intensity: List[float] = intensity
         self.pulsewidth: List[float] = pulsewidth
@@ -65,13 +76,11 @@ class PulseFile:
         return self.compile()
 
     def dump(self, fname):
-        dump(fname, self)
+        dump([self], fname)
 
 
-def init_datfile(filename: FileName = "~/Desktop/test.dat"):
+def init_datfile(filename: FileName):
     fname = Path(str(filename)).expanduser().absolute()
-    if fname.suffix == "":
-        fname = fname.with_suffix(".dat")
     if fname.suffix != ".dat":
         raise ValueError("Only .dat files can be saved")
 

@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v1
@@ -16,7 +16,6 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -U pip
-        pip install git+https://github.com/labstreaminglayer/liblsl-Python.git 
         pip install -r requirements.txt
         pip install .
     - name: Test with pytest

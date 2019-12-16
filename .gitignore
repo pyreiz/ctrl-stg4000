@@ -2,3 +2,10 @@
 */*/__pycache__/*
 */*_pycache_*
 .mypy_cache/**/*
+.coverage
+htmlcov/*
+.pytest_cache
+build/**
+dist/**
+.test/**
+docs/build/**
