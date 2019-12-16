@@ -1,4 +1,4 @@
-### STG4000 
+### STG4000
 
 This package wraps the C# dll ```McsUsbNet.dll``` for remote control of the multichannelsystem STG4002/4/8 in Python 3. The dll can be acquired from multichannelsystems directly at https://www.multichannelsystems.com/software/mcsusbnetdll or installed by script, i.e. by running ```python post_setup.py```.
 
@@ -10,7 +10,7 @@ The dll allows to set stimulation settings in stream or download mode. Currently
 git clone https://github.com/pyreiz/app-stg4000
 cd app-stg4000
 pip install -e .
-python post_setup.py
+python -m stg.install
 ```
 The last command downloads and unzips the most recent 64-bit dll from multichannelsystems into ```./bin```
 
@@ -19,7 +19,7 @@ The last command downloads and unzips the most recent 64-bit dll from multichann
 ```python
 from stg import STG4000
 stim = STG4000()
-# download a biphasic single pulse with an amplitude of +- 1mA, a pulsewidth of 1ms and a 
+# download a biphasic single pulse with an amplitude of +- 1mA, a pulsewidth of 1ms and a
 # interstimulusinterval of 48ms to the first channel. Channel indexing starts at 0.
 
 stim.download(channel_index=0, amplitude=[1, -1, 0],
@@ -46,4 +46,4 @@ stim.start_stimulation([1])
 ```
 #### Triggering multiple channels
 
-By default, the stg4002/4/8 uses a map to define which channels are to be triggered by which triggerinput. In that regard, ```stim.start_stimulation``` does actually not trigger a channel directly, but a trigger input, which is mapped to the respective channels. The triggermap is initialized during class instantiation to the identity diagonal, i.e. trigin 0 triggers channel 0, trigin 1 triggers channel 1. If you want to trigger multiple channels with a single trigin, you can use ```stim.start_stimulation([0,1])```. 
+By default, the stg4002/4/8 uses a map to define which channels are to be triggered by which triggerinput. In that regard, ```stim.start_stimulation``` does actually not trigger a channel directly, but a trigger input, which is mapped to the respective channels. The triggermap is initialized during class instantiation to the identity diagonal, i.e. trigin 0 triggers channel 0, trigin 1 triggers channel 1. If you want to trigger multiple channels with a single trigin, you can use ```stim.start_stimulation([0,1])```.
