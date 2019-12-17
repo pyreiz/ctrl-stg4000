@@ -4,7 +4,7 @@ import sys
 import pathlib
 from functools import partial
 from stg.api import STG4000, PulseFile
-from stg.stm import dump
+from stg.pulsefile import dump
 
 #%%
 class Intensity:
@@ -56,11 +56,11 @@ class Intensity:
         )
 
         p = PulseFile(
-            intensity=intensity,
+            intensity_in_mA=intensity,
             mode="biphasic",
-            pulsewidth=0.5,
+            pulsewidth_in_ms=0.5,
             burstcount=self.bc,
-            isi=self.isi,
+            isi_in_ms=self.isi,
         )
         return p
 
@@ -73,7 +73,7 @@ class Intensity:
     def compile_and_download(self):
         p = self.compile()
         amplitude, duration = p()
-        self.download(amplitude=amplitude, duration=duration)
+        self.download(amplitudes_in_mA=amplitude, durations_in_ms=duration)
         self.fuse.setEnabled(True)
 
 

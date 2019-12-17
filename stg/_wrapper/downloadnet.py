@@ -11,6 +11,7 @@ from typing import List
 from sys import platform
 
 if "win" in platform:
+    # pylint: disable=import-error
     import clr
     import System
     from stg.install import DLLPATH
@@ -337,32 +338,36 @@ class STG4000:
     def _download(
         self,
         channel_index: List[int] = [0],
-        amplitude: List[int] = [0],
-        duration: list = [20],
+        amplitudes: List[int] = [0],
+        durations: list = [20],
         mode="current",
     ):
 
-        if len(amplitude) != len(duration):
+        if len(amplitudes) != len(durations):
             raise ValueError("Every amplitude needs a duration and vice versa!")
-        amplitude = [System.Int32(a) for a in amplitude]
-        duration = [System.UInt64(d) for d in duration]
+        amplitudes = [System.Int32(a) for a in amplitudes]
+        durations = [System.UInt64(d) for d in durations]
 
         if mode == "current":
-            self.set_current_mode(channel_index)
+            for chan in channel_index:
+                self.set_current_mode(chan)
             with self.interface() as interface:
-                interface.PrepareAndSendData(
-                    channel_index,
-                    amplitude,
-                    duration,
-                    STG_DestinationEnumNet.channeldata_current,
-                )
+                for chan in channel_index:
+                    interface.PrepareAndSendData(
+                        chan,
+                        amplitudes,
+                        durations,
+                        STG_DestinationEnumNet.channeldata_current,
+                    )
         elif mode == "voltage":
-            self.set_voltage_mode(System.UInt32(channel_index))
+            for chan in channel_index:
+                self.set_voltage_mode(System.UInt32(chan))
             with self.interface() as interface:
-                interface.PrepareAndSendData(
-                    channel_index,
-                    amplitude,
-                    duration,
-                    STG_DestinationEnumNet.channeldata_voltage,
-                )
+                for chan in channel_index:
+                    interface.PrepareAndSendData(
+                        chan,
+                        amplitudes,
+                        durations,
+                        STG_DestinationEnumNet.channeldata_voltage,
+                    )
 
