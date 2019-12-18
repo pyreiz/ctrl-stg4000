@@ -7,6 +7,7 @@ from stg._wrapper.dll import (
     STG_DestinationEnumNet,
     DeviceInfo,
     available,
+    bitmap,
 )
 from typing import List
 

@@ -4,41 +4,14 @@ from time import sleep
 from typing import List
 from stg._wrapper.dll import (
     System,
-    CMcsUsbListNet,
-    CStg200xDownloadNet,
-    STG_DestinationEnumNet,
+    CURRENT,
+    VOLTAGE,
     available,
+    select,
     DeviceInfo,
+    DownloadInterface,
+    bitmap,
 )
-
-
-def bitmap(valuelist: list):
-    bmap = sum(map(lambda x: 2 ** x, valuelist))
-    return None if bmap == 0 else bmap
-
-
-class BasicInterface:
-    def __enter__(self):
-        self.connect()
-        return self
-
-    def __exit__(self, type, value, tb):
-        self.disconnect()
-
-    def __init__(self, info: DeviceInfo):
-        self._info = info
-        self._interface = CStg200xDownloadNet()
-
-    def connect(self):
-        self.connected = True
-        self._interface.Connect(self._info)
-
-    def disconnect(self):
-        self.connected = False
-        self._interface.Disconnect()
-
-    def __getattr__(self, item):
-        return getattr(self._interface, item)
 
 
 class STG4000:
@@ -49,10 +22,10 @@ class STG4000:
         if serial is None:
             info = available()[0]
         else:
-            info = available(serial)
+            info = select(serial)
         print("Selecting {0:s}:SN {1:s}".format(info.DeviceName, info.SerialNumber))
         self._info = info
-        self.interface = lambda: BasicInterface(info)
+        self.interface = lambda: DownloadInterface(info)
         self.diagonalize_triggermap()
 
     @property
@@ -314,21 +287,11 @@ class STG4000:
                 self.set_current_mode(chan)
             with self.interface() as interface:
                 for chan in channel_index:
-                    interface.PrepareAndSendData(
-                        chan,
-                        amplitudes,
-                        durations,
-                        STG_DestinationEnumNet.channeldata_current,
-                    )
+                    interface.PrepareAndSendData(chan, amplitudes, durations, CURRENT)
         elif mode == "voltage":
             for chan in channel_index:
                 self.set_voltage_mode(System.UInt32(chan))
             with self.interface() as interface:
                 for chan in channel_index:
-                    interface.PrepareAndSendData(
-                        chan,
-                        amplitudes,
-                        durations,
-                        STG_DestinationEnumNet.channeldata_voltage,
-                    )
+                    interface.PrepareAndSendData(chan, amplitudes, durations, VOLTAGE)
 
