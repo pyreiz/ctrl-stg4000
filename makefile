@@ -17,6 +17,7 @@ test: build
 	source .test/bin/activate
 	pip install dist/*.whl
 	pytest
+	coverage html
 	
 .PHONY: upload
 upload: build
