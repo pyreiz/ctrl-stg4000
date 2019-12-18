@@ -19,7 +19,7 @@ def stg():
 def test_download_current(stg):
     stg.download(
         channel_index=0,
-        amplitudes_in_mA=[1000, -1000],
+        amplitudes_in_mA=[1, -1],
         durations_in_ms=[0.1, 0.1],
         mode="current",
     )

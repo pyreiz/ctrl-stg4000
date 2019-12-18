@@ -42,7 +42,7 @@ def connect(device, info):
 
 def set_capacity(device, capacity: int, channel: int = 0):
     total_memory = device.GetTotalMemory()
-    print(total_memory)
+    print(f"Total memory: {total_memory}")
     nTrigger = device.GetNumberOfTriggerInputs()
     trigger_capacity = []
     for i in range(nTrigger):
@@ -113,16 +113,17 @@ class STG4000(STGX):
 
         print("Start stimulation")
         t0 = time.time()
+        scalar = 2_000
         try:
             amp = 0
             while time.time() - t0 < 10:
                 amp = 1 if amp == 0 else 0
-                signal = [10_000 * amp] * 5 + [10_000 * -amp] * 5 + [0, 0] * 500
+                signal = [scalar * amp] * 5 + [scalar * -amp] * 5 + [0, 0] * 500
                 while not queue(device, signal=signal, chan=0):
                     pass
 
         except Exception as e:
-            print(e)
+            print(f"Exception: {e}")
             for i in range(nTrigger):
                 device.SendStop(System.UInt32(i))
 
