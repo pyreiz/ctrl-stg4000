@@ -130,9 +130,9 @@ class DownloadInterface(BasicInterface):
 
 
 class StreamingInterface(BasicInterface):
-    def __init__(self, info: DeviceInfo, buffer_sz: int = 50_000):
+    def __init__(self, info: DeviceInfo, buffer_size: int = 50_000):
         self._info = info
-        self._interface = CStg200xStreamingNet(System.UInt32(buffer_sz))
+        self._interface = CStg200xStreamingNet(System.UInt32(buffer_size))
 
 
 class STGX(ABC):
