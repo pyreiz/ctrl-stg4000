@@ -1,9 +1,14 @@
 from stg.api import PulseFile, STG4000
 import pytest
+from stg._wrapper.dll import available, select
 
 
 @pytest.fixture(scope="module")
 def stg():
+    there = available()
+    snum = int(there[0].SerialNumber)
+    pick = select(snum)
+    assert pick == there[0]
     stg = STG4000()
     print(stg, stg.version)
     yield stg
@@ -34,6 +39,7 @@ def test_current(stg):
         mode="current",
     )
     stg.start_stimulation([0])
+    stg.stop_stimulation([0])
 
 
 def test_voltage(stg):
@@ -44,4 +50,10 @@ def test_voltage(stg):
         mode="voltage",
     )
     stg.start_stimulation([0])
+    stg.stop_stimulation([0])
+
+
+def test_start_stop_all(stg):
+    stg.start_stimulation()
+    stg.stop_stimulation()
 

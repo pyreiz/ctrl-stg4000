@@ -317,7 +317,7 @@ class STGX:
         
         """
 
-        if triggerIndex is []:
+        if triggerIndex == []:
             triggerIndex = [c for c in range(self.channel_count)]
         with self.interface() as interface:
             interface.SendStart(System.UInt32(bitmap(triggerIndex)))
