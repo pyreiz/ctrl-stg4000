@@ -2,10 +2,11 @@ from pathlib import Path
 from sys import platform
 from typing import List, Union, Any, Callable
 from time import sleep
+from abc import ABC, abstractmethod
 
 # ----------------------------------------------------------------------------
 # Mocking everything in case we run this for testing or on Linux
-if "win" in platform:
+if "win" in platform:  # pragma no cover
     # pylint: disable=import-error
     import clr
     import System
@@ -23,7 +24,7 @@ if "win" in platform:
     CURRENT = STG_DestinationEnumNet.channeldata_current
     VOLTAGE = STG_DestinationEnumNet.channeldata_voltage
     from Mcs.Usb import CMcsUsbListEntryNet as DeviceInfo
-else:
+else:  # pragma no cover
     from stg._wrapper.mock import (
         CMcsUsbListNet,
         DeviceEnumNet,
@@ -31,6 +32,7 @@ else:
         CStg200xDownloadNet,
         CURRENT,
         VOLTAGE,
+        DeviceInfo,
     )
 
 from stg._wrapper.mock import CStg200xMockNet
@@ -63,7 +65,7 @@ def bitmap(valuelist: list):
 
 
 # ------------------------------------------------------------------------------
-class BasicInterface:
+class BasicInterface(ABC):
     """Implements the `with` syntax for connecting to a CStg200xDownloadNet or CStg200xStreamingNet
     
     .. code-block:: python
@@ -86,10 +88,9 @@ class BasicInterface:
     
     """
 
-    def __init__(self, info: DeviceInfo, *args, **kwargs):
-        self.connected = False
-        self._info = info
-        self._interface = CStg200xMockNet(*args, **kwargs)
+    @abstractmethod
+    def __init__(self, info: DeviceInfo, *args, **kwargs):  # pragma no cover
+        pass
 
     def connect(self) -> int:
         "connect with the device"
@@ -105,7 +106,7 @@ class BasicInterface:
         err = self.connect()
         if err == 0:
             return self
-        else:
+        else:  # pragma no cover
             raise ConnectionRefusedError(f"{err}")
 
     def __exit__(self, type, value, tb):
@@ -113,6 +114,13 @@ class BasicInterface:
 
     def __getattr__(self, item):
         return getattr(self._interface, item)
+
+
+class MockingInterface(BasicInterface):
+    def __init__(self, info: DeviceInfo, *args, **kwargs):
+        self.connected = False
+        self._info = info
+        self._interface = CStg200xMockNet(*args, **kwargs)
 
 
 class DownloadInterface(BasicInterface):
