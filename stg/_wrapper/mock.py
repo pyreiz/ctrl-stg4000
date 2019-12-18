@@ -22,12 +22,12 @@ class CStg200xMockNet:
         error: int
             Error Status. 0 on success.
         """
-        print("Connecting with a MOCK STG")
+        print("MOCK:CONNECT with a MOCK STG")
         return 0
 
     def Disconnect(self) -> None:
         "Disconnect from a device."
-        print("Disconnecting from a MOCK STG")
+        print("MOCK:DISCONNECT from a MOCK STG")
         pass
 
 
@@ -38,6 +38,7 @@ DeviceInfo = Any
 
 
 def _mock(*args, **kwargs):
+    print("Mocking a call with", args, kwargs)
     pass
 
 

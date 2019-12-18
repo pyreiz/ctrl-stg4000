@@ -22,6 +22,7 @@ class STG4000(STGX):
         channel_index: int = 0,
         amplitudes_in_mA: List[float,] = [0],
         durations_in_ms: List[float,] = [0],
+        mode="current",
     ):
 
         """Download a stimulation signal 
@@ -39,45 +40,41 @@ class STG4000(STGX):
         duration:List[float,]
             a list of durations in ms determing how long each corresponding 
             amplitude is delivered
+        mode: str {"current", "voltage"}
+            defaults to current
 
         .. example::
             
              mcs.download(channel_index = 0,
-                          amplitude = [1, -1, 0],
-                          duration = [.1, .1, .488])
+                          amplitudes_in_mA = [1, -1, 0],
+                          durations_in_ms = [.1, .1, .488])
              sets the first channel to a biphasic pulse with 100µs duration
              each and an amplitude of 1000µA, i.e 1mA.
         
         notes:
-           The signal is downloaded with  interface.PrepareAndSendData, 
+           The signal is downloaded with interface.PrepareAndSendData, 
            therefore previous data sent to that channel is erased first.
         """
-
-        amplitudes = [int(a * 1000_000) for a in amplitudes_in_mA]
-        durations = [int(s * 1000) for s in durations_in_ms]
-        self._download([channel_index], amplitudes, durations, "current")
-
-    def _download(
-        self,
-        channel_index: List[int] = [0],
-        amplitudes: List[int] = [0],
-        durations: list = [20],
-        mode="current",
-    ):
-
-        if len(amplitudes) != len(durations):
+        if len(amplitudes_in_mA) != len(durations_in_ms):
             raise ValueError("Every amplitude needs a duration and vice versa!")
-        amplitudes = [System.Int32(a) for a in amplitudes]
-        durations = [System.UInt64(d) for d in durations]
+
+        amplitudes = [System.Int32(a * 1000_000) for a in amplitudes_in_mA]
+        durations = [System.UInt64(s * 1000) for s in durations_in_ms]
 
         if mode == "current":
-            self.set_current_mode(channel_index)
+            self.set_current_mode([channel_index])
             with self.interface() as interface:
-                for chan in channel_index:
-                    interface.PrepareAndSendData(chan, amplitudes, durations, CURRENT)
+                interface.PrepareAndSendData(
+                    System.UInt32(channel_index), amplitudes, durations, CURRENT
+                )
         elif mode == "voltage":
-            self.set_voltage_mode(channel_index)
+            self.set_voltage_mode([channel_index])
             with self.interface() as interface:
-                for chan in channel_index:
-                    interface.PrepareAndSendData(chan, amplitudes, durations, VOLTAGE)
+                interface.PrepareAndSendData(
+                    System.UInt32(channel_index), amplitudes, durations, VOLTAGE
+                )
+        else:
+            raise ValueError(
+                f"Unknow mode {mode}. select either 'current' or ' 'voltage'"
+            )
 

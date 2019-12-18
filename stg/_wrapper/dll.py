@@ -140,9 +140,9 @@ class STGX:
     def interface(self):
         return BasicInterface(None)
 
-    def sleep(self, duration_in_s: float):
+    def sleep(self, duration_in_ms: float):
         "sleep for duration in milliseconds"
-        sleep(duration_in_s)
+        sleep(duration_in_ms / 1000)
 
     @property
     def name(self):
