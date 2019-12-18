@@ -78,7 +78,8 @@ class STG4000:
                 interface.SetCurrentMode()
         else:
             with self.interface() as interface:
-                interface.SetCurrentMode(System.UInt32(channel_index))
+                for chan in channel_index:
+                    interface.SetCurrentMode(System.UInt32(chan))
 
     def set_voltage_mode(self, channel_index: List[int] = []):
         """set a single or all channels to voltage mode
@@ -96,7 +97,8 @@ class STG4000:
                 interface.SetVoltageMode()
         else:
             with self.interface() as interface:
-                interface.SetVoltageMode(System.UInt32(channel_index))
+                for chan in channel_index:
+                    interface.SetVoltageMode(System.UInt32(chan))
 
     @property
     def current_resolution_in_uA(self):
@@ -283,14 +285,12 @@ class STG4000:
         durations = [System.UInt64(d) for d in durations]
 
         if mode == "current":
-            for chan in channel_index:
-                self.set_current_mode(chan)
+            self.set_current_mode(channel_index)
             with self.interface() as interface:
                 for chan in channel_index:
                     interface.PrepareAndSendData(chan, amplitudes, durations, CURRENT)
         elif mode == "voltage":
-            for chan in channel_index:
-                self.set_voltage_mode(System.UInt32(chan))
+            self.set_voltage_mode(channel_index)
             with self.interface() as interface:
                 for chan in channel_index:
                     interface.PrepareAndSendData(chan, amplitudes, durations, VOLTAGE)

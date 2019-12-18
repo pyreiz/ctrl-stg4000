@@ -32,6 +32,7 @@ else:
         VOLTAGE,
     )
 
+from stg._wrapper.mock import CStg200xMockNet
 
 # ------------------------------------------------------------------------------
 def available() -> List[DeviceInfo]:
