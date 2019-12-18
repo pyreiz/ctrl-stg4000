@@ -1,6 +1,7 @@
 from stg.api import PulseFile, STG4000
 import pytest
 from stg._wrapper.dll import available, select
+import time
 
 
 @pytest.fixture(scope="module")
@@ -14,6 +15,7 @@ def stg():
     yield stg
 
 
+@pytest.mark.download
 def test_download_current(stg):
     stg.download(
         channel_index=0,
@@ -21,7 +23,8 @@ def test_download_current(stg):
         durations_in_ms=[0.1, 0.1],
         mode="current",
     )
-    for i in range(0, 100, 1):
+    t0 = time.time()
+    while time.time() - t0 < 10:
         stg.start_stimulation([0])
         stg.sleep(10)
 

@@ -4,7 +4,7 @@ import pytest
 import sys
 
 
-@pytest.mark.download
+@pytest.mark.install
 @pytest.mark.parametrize("platform", ["32bit", "64bit"])
 def test_download_dll(platform):
     if DLLPATH.exists():

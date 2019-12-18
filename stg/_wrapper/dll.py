@@ -135,7 +135,7 @@ class StreamingInterface(BasicInterface):
         self._interface = CStg200xStreamingNet(System.UInt32(buffer_sz))
 
 
-class STGX:
+class STGX(ABC):
     def __init__(self, serial: int = None):
         if serial is None:
             info = available()[0]
@@ -145,7 +145,8 @@ class STGX:
         self._info = info
         self.diagonalize_triggermap()
 
-    def interface(self):
+    @abstractmethod
+    def interface(self):  # pragma no cover
         return BasicInterface(None)
 
     def sleep(self, duration_in_ms: float):
@@ -330,6 +331,7 @@ class STGX:
         with self.interface() as interface:
             interface.SendStart(System.UInt32(bitmap(triggerIndex)))
 
+    @abstractmethod
     def diagonalize_triggermap(self):
         """Normalize the channelmap to a diagonal
                 
@@ -345,12 +347,4 @@ class STGX:
             +----------+---+---+---+---+---+---+---+---+
         
         """
-        channelmap = []
-        syncoutmap = []
-        repeat = []
-        for chan_idx in range(0, self.channel_count):
-            repeat.append(1)  # every trigger only once
-            syncoutmap.append(1 << chan_idx)  # diagonal triggerout
-            channelmap.append(1 << chan_idx)  # diagonal triggerin
-        with self.interface() as interface:
-            interface.SetupTrigger(0, channelmap, syncoutmap, repeat)
+        pass

@@ -17,6 +17,17 @@ class STG4000(STGX):
     def interface(self):
         return DownloadInterface(self._info)
 
+    def diagonalize_triggermap(self):
+        channelmap = []
+        syncoutmap = []
+        repeat = []
+        for chan_idx in range(0, self.channel_count):
+            repeat.append(1)  # every trigger only once
+            syncoutmap.append(1 << chan_idx)  # diagonal triggerout
+            channelmap.append(1 << chan_idx)  # diagonal triggerin
+        with self.interface() as interface:
+            interface.SetupTrigger(0, channelmap, syncoutmap, repeat)
+
     def download(
         self,
         channel_index: int = 0,
