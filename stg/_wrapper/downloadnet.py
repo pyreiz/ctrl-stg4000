@@ -1,54 +1,20 @@
 # -*- coding: utf-8 -*-
-"""
-Spyder Editor
-
-This is a temporary script file.
-"""
-from pathlib import Path
 from functools import lru_cache
 from time import sleep
 from typing import List
-from sys import platform
+from stg._wrapper.dll import (
+    System,
+    CMcsUsbListNet,
+    CStg200xDownloadNet,
+    STG_DestinationEnumNet,
+    available,
+    DeviceInfo,
+)
 
-if "win" in platform:
-    # pylint: disable=import-error
-    import clr
-    import System
-    from stg.install import DLLPATH
 
-    lib = System.Reflection.Assembly.LoadFile(str(DLLPATH))
-    from Mcs.Usb import (
-        CMcsUsbListNet,
-        DeviceEnumNet,
-        CStg200xDownloadNet,
-        STG_DestinationEnumNet,
-    )
-else:
-
-    def _mock(*args, **kwargs):
-        pass
-
-    CMcsUsbListNet = _mock
-    DeviceEnumNet = _mock
-    CStg200xDownloadNet = _mock
-    STG_DestinationEnumNet = _mock
-# %%
-def available(serial: int = None):
-    deviceList = CMcsUsbListNet()
-    deviceList.Initialize(DeviceEnumNet.MCS_STG_DEVICE)
-    if serial is None:  # return a list of all available
-        devices = []
-        for dev_num in range(0, deviceList.GetNumberOfDevices()):
-            devices.append(deviceList.GetUsbListEntry(dev_num))
-        return devices
-
-    else:  # return the device with the desired serial number
-        device = None
-        for dev_num in range(0, deviceList.GetNumberOfDevices()):
-            ser = int(deviceList.GetUsbListEntry(dev_num).SerialNumber)
-            if ser == serial:
-                device = deviceList.GetUsbListEntry(dev_num)
-        return device
+def bitmap(valuelist: list):
+    bmap = sum(map(lambda x: 2 ** x, valuelist))
+    return None if bmap == 0 else bmap
 
 
 class BasicInterface:
@@ -59,7 +25,7 @@ class BasicInterface:
     def __exit__(self, type, value, tb):
         self.disconnect()
 
-    def __init__(self, info):
+    def __init__(self, info: DeviceInfo):
         self._info = info
         self._interface = CStg200xDownloadNet()
 
@@ -73,11 +39,6 @@ class BasicInterface:
 
     def __getattr__(self, item):
         return getattr(self._interface, item)
-
-
-def bitmap(valuelist: list):
-    bmap = sum(map(lambda x: 2 ** x, valuelist))
-    return None if bmap == 0 else bmap
 
 
 class STG4000:
