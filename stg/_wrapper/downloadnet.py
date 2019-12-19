@@ -38,33 +38,35 @@ class STG4000(STGX):
 
         """Download a stimulation signal 
         
-        The signal is compressed to amplitudes and their respective durations 
-        
+        .. Warning::
+
+           Any previous data sent to that channel is erased. Other channels stay untouched.
+           
+        The signal is compressed as amplitudes and their respective durations 
+
         args
         ----
-        
-        channel_index:int
+        channel_index: int
             The index of the channel for which to download the signal. Indexing
             starts at 0
-        amplitude:List[float,]
+        amplitudes_in_mA: List[float]
             a list of amplitudes in mA/mV delivered for the corresponding duration 
-        duration:List[float,]
+        durations_in_ms: List[float]
             a list of durations in ms determing how long each corresponding 
             amplitude is delivered
-        mode: str {"current", "voltage"}
+        mode: str
             defaults to current
 
-        .. example::
+        Example
+        -------
+     
+        .. code-block:: python
             
-             mcs.download(channel_index = 0,
-                          amplitudes_in_mA = [1, -1, 0],
-                          durations_in_ms = [.1, .1, .488])
-             sets the first channel to a biphasic pulse with 100µs duration
-             each and an amplitude of 1000µA, i.e 1mA.
-        
-        notes:
-           The signal is downloaded with interface.PrepareAndSendData, 
-           therefore previous data sent to that channel is erased first.
+           mcs.download(channel_index = 0,
+                        amplitudes_in_mA = [1, -1, 0],
+                        durations_in_ms = [.1, .1, .488])
+           
+    
         """
         if len(amplitudes_in_mA) != len(durations_in_ms):
             raise ValueError("Every amplitude needs a duration and vice versa!")

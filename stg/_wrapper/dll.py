@@ -33,8 +33,8 @@ else:  # pragma no cover
         CURRENT,
         VOLTAGE,
         DeviceInfo,
+        System,
     )
-
 from stg._wrapper.mock import CStg200xMockNet
 
 # ------------------------------------------------------------------------------

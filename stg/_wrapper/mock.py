@@ -45,4 +45,4 @@ def _mock(*args, **kwargs):
 CMcsUsbListNet = _mock
 DeviceEnumNet = _mock
 STG_DestinationEnumNet = _mock
-
+System = _mock
