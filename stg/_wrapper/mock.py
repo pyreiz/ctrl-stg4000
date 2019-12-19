@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Tuple
 
 
 def _mock(*args, **kwargs):
@@ -13,10 +13,18 @@ def transit(x):
 from unittest.mock import Mock, PropertyMock
 from unittest.mock import MagicMock
 
-DeviceInfo = MagicMock()
-DeviceInfo.DeviceName = "STGmock"
-DeviceInfo.SerialNumber = "1007"
-DeviceInfo.ToString = MagicMock(return_value="Mock")
+
+class DeviceInfo:
+    DeviceName = "STG0007"
+    SerialNumber = "70007"
+    Manufacturer = "ACME"
+
+    def ToString(self):
+        return "Mock"
+
+
+info = DeviceInfo()
+
 DeviceList = MagicMock()
 DeviceList.GetNumberOfDevices = MagicMock(return_value=1)
 DeviceList.GetUsbListEntry = MagicMock(return_value=DeviceInfo)
@@ -66,28 +74,28 @@ class CStg200xMockNet:
         print("MOCK:DISCONNECT from a MOCK STG")
         pass
 
-    def GetCurrentResolutionInNanoAmp(self, ptr) -> int:
-        return 1
+    def GetCurrentResolutionInNanoAmp(self, ptr) -> float:
+        return 2000
 
-    def GetCurrentRangeInNanoAmp(self, ptr) -> int:
-        return 1
+    def GetCurrentRangeInNanoAmp(self, ptr) -> float:
+        return 16_000 * 1000
 
-    def GetVoltageResolutionInMicroVolt(self, ptr) -> int:
-        return 1
+    def GetVoltageResolutionInMicroVolt(self, ptr) -> float:
+        return 1000
 
-    def GetVoltageRangeInMicroVolt(self, ptr) -> int:
-        return 1
+    def GetVoltageRangeInMicroVolt(self, ptr) -> float:
+        return 8000.0 * 1000
 
-    def GetDACResolution(self) -> int:
-        return 1
+    def GetDACResolution(self) -> float:
+        return 14.0
 
-    def GetNumberOfAnalogChannels(self):
+    def GetNumberOfAnalogChannels(self) -> int:
         return 2
 
     def SetupTrigger(self, *args, **kwargs):
         pass
 
-    def GetStgVersionInfo(self, a: str, b: str):
+    def GetStgVersionInfo(self, a: str, b: str) -> Tuple[str, str, str]:
         return "ignore", "M-Soft", "M-Hard"
 
     def EnableContinousMode(self, *args, **kwargs):
@@ -108,7 +116,7 @@ class CStg200xMockNet:
     def GetTotalMemory(self):
         return 10000
 
-    def GetNumberOfTriggerInputs(self):
+    def GetNumberOfTriggerInputs(self) -> int:
         return 2
 
     def SetCapacity(self, *args, **kwargs):
@@ -138,4 +146,3 @@ class CStg200xMockNet:
 CStg200xStreamingNet = CStg200xDownloadNet = CStg200xMockNet
 CURRENT = 1
 VOLTAGE = 0
-DeviceInfo = Any

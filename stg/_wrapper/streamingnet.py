@@ -53,61 +53,6 @@ def diagonalize_triggermap(device, callback_percent: int = 10):
     device.SetupTrigger(cmap, syncmap, digoutmap, autostart, callback_threshold)
 
 
-class STG4000(STG4000DL):
-    def _streamer(self, buffer_size: int = 100):
-        return StreamingInterface(self._info, buffer_size=buffer_size)
-
-    def stream(
-        self,
-        channel_index: int = 0,
-        amplitudes_in_mA: List[float,] = [0],
-        rate_in_hz: int = 50_000,
-        mode="current",
-    ):
-        # maxvalue int16 32767
-        # minvalue int16 -32768
-        # info = available()[0]
-        buffer_size = 50_000
-        #  device = CStg200xStreamingNet(System.UInt32(buffer_size))
-        with self._streamer(buffer_size=buffer_size) as device:
-            # device.SetVoltageMode()
-            device.SetCurrentMode()
-            device.EnableContinousMode()
-            # device.DisableContinousMode()
-
-            rate = 50_000
-            set_capacity(device, rate, 0)
-            diagonalize_triggermap(device)
-            device.SetOutputRate(System.UInt32(rate))
-
-            device.StartLoop()
-            time.sleep(1)
-            nTrigger = device.GetNumberOfTriggerInputs()
-            for i in range(nTrigger):
-                device.SendStart(System.UInt32(i))
-
-            print("Start stimulation")
-            t0 = time.time()
-            scalar = 2_000
-            try:
-                amp = 0
-                while time.time() - t0 < 10:
-                    amp = 1 if amp == 0 else 0
-                    signal = [scalar * amp] * 5 + [scalar * -amp] * 5 + [0, 0] * 500
-                    while not queue(device, signal=signal, chan=0):
-                        # print(signal)
-                        pass
-
-            except Exception as e:
-                print(f"Exception: {e}")
-
-            finally:
-                for i in range(nTrigger):
-                    device.SendStop(System.UInt32(i))
-                device.StopLoop()
-                device.Disconnect()
-
-
 class SignalMapping(dict):
     lock = threading.Lock()
     _scalar = 2_000  #: to make 1 equal to 1mA in current mode
@@ -131,6 +76,7 @@ class SignalMapping(dict):
 class STG4000Streamer(STG4000DL):
 
     _dll_bufsz: int = 50_000  #: how many samples will be allocated in total across all channels
+    _streaming = threading.Event()
     _outputrate: int = 50_000
     _signals = SignalMapping()
 
@@ -162,13 +108,13 @@ class STG4000Streamer(STG4000DL):
         )
         self._signals[channel_index] = signal
 
-    def _streamer(self):
+    def streamer(self):
         return StreamingInterface(self._info, buffer_size=self.buffer_size)
 
-    def _stream(self, duration_in_s: int = 10):
+    def _stream(self, barrier: threading.Barrier):
         # maxvalue int16 32767
         # minvalue int16 -32768
-        with self._streamer() as device:
+        with self.streamer() as device:
             device.SetCurrentMode()
             device.EnableContinousMode()
             rate = self.output_rate_in_hz
@@ -181,34 +127,38 @@ class STG4000Streamer(STG4000DL):
             nTrigger = device.GetNumberOfTriggerInputs()
             for i in range(nTrigger):
                 device.SendStart(System.UInt32(i))
-
-            print("Start stimulation")
-            t0 = time.time()
-            delta = 0.0
             try:
-                while delta < duration_in_s:
+                barrier.wait()
+                t0 = time.time()
+                delta = 0.0
+                print("Start stimulation")
+                while self._streaming.is_set():
                     delta = time.time() - t0
                     prg = self._signals[0].copy()
                     print(delta, prg[19])
-                    while not queue(device, signal=prg, chan=0):
-                        pass
+                    sent = queue(device, signal=prg, chan=0)
+                    while not sent:
+                        sent = queue(device, signal=prg, chan=0)
+                        if self._streaming.is_set() == False:
+                            break
 
-            except Exception as e:
+            except Exception as e:  # pragma no cover
                 print(f"Exception: {e}")
-
             finally:
                 for i in range(nTrigger):
                     device.SendStop(System.UInt32(i))
                 device.StopLoop()
                 device.Disconnect()
 
-    def start_streaming(self, duration_in_s: int = 10):
-        self._t = threading.Thread(
-            target=self._stream, kwargs={"duration_in_s": duration_in_s}
-        )
+    def start_streaming(self):
+        barrier = threading.Barrier(2)
+        self._streaming.set()
+        self._t = threading.Thread(target=self._stream, kwargs={"barrier": barrier})
         self._t.start()
+        barrier.wait()
 
     def stop_streaming(self):
+        self._streaming.clear()
         if hasattr(self, "_t"):
             self._t.join()
             del self._t

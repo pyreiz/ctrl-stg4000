@@ -32,26 +32,22 @@ def test_properties(stg):
     assert stg.buffer_size == 99
 
 
-def test_start_stop():
-    duration = 5.0
+def test_increase_pulse_width():
+    "start streaming a biphasic pulse, after 5s, increase the pulse-width"
     stg = STG4000Streamer()
-
     stg.set_signal(0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.1, 0.1, 49.8])
-    # t = threading.Thread(target=stg.stream, kwargs={"duration_in_s": duration})
+    stg.start_streaming()
 
-    # t.start()
-    stg.start_streaming(duration_in_s=duration)
     t0 = time.time()
     flipped = False
-    while True:
-        if time.time() - t0 > 2.5 and not flipped:
+    while time.time() - t0 < 10:
+        if time.time() - t0 > 5 and not flipped:
             flipped = True
             print("Switch the signal")
             stg.set_signal(
                 0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.2, 0.2, 49.6]
             )
-        if time.time() - t0 > duration:
-            break
         time.sleep(0.01)
+
     stg.stop_streaming()
 

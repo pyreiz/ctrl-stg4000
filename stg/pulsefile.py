@@ -158,7 +158,7 @@ def decompress(
         a list of amplitudes
     durations_in_ms: List[float,] = [0]
         a list of the respective durationas
-    rate_in_khz: int = 50
+    rate_in_hz: int = 50_000
         the sampling rate of the decompressed signal
     
     returns

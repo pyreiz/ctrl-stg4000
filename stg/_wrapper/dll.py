@@ -4,6 +4,7 @@ from typing import List, Union, Any, Callable
 from time import sleep
 from abc import ABC, abstractmethod
 
+
 # ----------------------------------------------------------------------------
 # Mocking everything in case we run this for testing or on Linux
 if "win" in platform:  # pragma no cover
@@ -36,6 +37,7 @@ else:  # pragma no cover
         System,
     )
 from stg._wrapper.mock import CStg200xMockNet
+from stg._wrapper.mock import info as mockinfo
 
 # ------------------------------------------------------------------------------
 def available() -> List[DeviceInfo]:
@@ -50,6 +52,9 @@ def available() -> List[DeviceInfo]:
 
 def select(serialnumber: int = None) -> Union[DeviceInfo, None]:
     "select an STG with a specific serial number from all connected devices"
+    if serialnumber == -1:
+        return mockinfo
+
     deviceList = CMcsUsbListNet()
     deviceList.Initialize(DeviceEnumNet.MCS_STG_DEVICE)
     for dev_num in range(0, deviceList.GetNumberOfDevices()):
@@ -170,7 +175,7 @@ class STGX(ABC):
             )
             self._crngua = interface.GetCurrentRangeInNanoAmp(System.UInt32(0)) / (1000)
             self._vinuv = interface.GetVoltageResolutionInMicroVolt(System.UInt32(0))
-            self._vinmv = interface.GetVoltageRangeInMicroVolt(System.UInt32(0)) / (
+            self._vrnguv = interface.GetVoltageRangeInMicroVolt(System.UInt32(0)) / (
                 1000
             )
             self._dacr = interface.GetDACResolution()
@@ -212,37 +217,37 @@ class STGX(ABC):
         return self._manufacturer
 
     @property
-    def current_resolution_in_uA(self) -> int:
+    def current_resolution_in_uA(self) -> float:
         "Return the current resolution in µA"
         return self._crinua
 
     @property
-    def current_resolution_in_mA(self) -> int:
+    def current_resolution_in_mA(self) -> float:
         "Return the current resolution in mA"
         return self._crinma
 
     @property
-    def current_range_in_mA(self) -> int:
+    def current_range_in_mA(self) -> float:
         "Return the current range in mA"
         return self._crngma
 
     @property
-    def current_range_in_uA(self) -> int:
+    def current_range_in_uA(self) -> float:
         "Return the current range in uA"
         return self._crngua
 
     @property
-    def voltage_resolution_in_uV(self) -> int:
+    def voltage_resolution_in_uV(self) -> float:
         "Return the voltage resolution in µV"
         return self._vinuv
 
     @property
-    def voltage_range_in_mV(self) -> int:
-        "Return the voltage resolution in mV"
-        return self._vinmv
+    def voltage_range_in_uV(self) -> float:
+        "Return the voltage range in uV"
+        return self._vrnguv
 
     @property
-    def time_resolution_in_us(self) -> int:
+    def time_resolution_in_us(self) -> float:
         "Return the time resolution in µs"
         return 20
 
