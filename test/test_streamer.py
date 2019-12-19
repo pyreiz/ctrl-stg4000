@@ -37,9 +37,7 @@ def test_start_stop():
     stg = STG4000Streamer()
 
     stg.set_signal(0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.1, 0.1, 49.8])
-    t = threading.Thread(
-        target=stg.stream, args=(stg._signals,), kwargs={"duration_in_s": duration}
-    )
+    t = threading.Thread(target=stg.stream, kwargs={"duration_in_s": duration})
 
     t.start()
     t0 = time.time()

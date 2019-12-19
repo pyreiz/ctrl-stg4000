@@ -165,12 +165,7 @@ class STG4000Streamer(STG4000DL):
     def _streamer(self):
         return StreamingInterface(self._info, buffer_size=self.buffer_size)
 
-    def stream(
-        self,
-        signals: Dict[int, List[int]],
-        duration_in_s: int = 10,
-        rate_in_hz: int = 50_000,
-    ):
+    def stream(self, duration_in_s: int = 10):
         # maxvalue int16 32767
         # minvalue int16 -32768
         with self._streamer() as device:
@@ -193,7 +188,7 @@ class STG4000Streamer(STG4000DL):
             try:
                 while delta < duration_in_s:
                     delta = time.time() - t0
-                    prg = signals[0].copy()
+                    prg = self._signals[0].copy()
                     print(delta, prg[19])
                     while not queue(device, signal=prg, chan=0):
                         pass
