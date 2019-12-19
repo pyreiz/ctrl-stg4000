@@ -1,4 +1,4 @@
-[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License) [![pytest-status](https://github.com/pyreiz/ctrl-stg4000/workflows/pytest/badge.svg)](https://github.com/pyreiz/ctrl-stg4000/actions) [![Coverage Status](https://coveralls.io/repos/github/pyreiz/ctrl-stg4000/badge.svg?branch=develop)](https://coveralls.io/github/pyreiz/ctrl-stg4000?branch=develop)
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License) [![pytest-status](https://github.com/pyreiz/ctrl-stg4000/workflows/pytest/badge.svg)](https://github.com/pyreiz/ctrl-stg4000/actions) [![Coverage Status](https://coveralls.io/repos/github/pyreiz/ctrl-stg4000/badge.svg?branch=develop)](https://coveralls.io/github/pyreiz/ctrl-stg4000?branch=develop) [![Documentation Status](https://readthedocs.org/projects/ctrl-stg4000/badge/?version=latest)](https://ctrl-stg4000.readthedocs.io/en/latest/?badge=latest)
 
 ### STG4000
 
