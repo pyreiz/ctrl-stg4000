@@ -27,7 +27,7 @@ def test_start_stop():
     manager = Manager()
     signal = manager.list()
     signal = [1] * 5 + [-1] * 5 + [0] * 1000
-    duration = 20
+    duration = 5.0
     t = threading.Thread(
         target=stg.stream, args=(signal,), kwargs={"duration_in_s": duration}
     )
@@ -36,7 +36,7 @@ def test_start_stop():
     t0 = time.time()
     flipped = False
     while True:
-        if time.time() - t0 > 10 and not flipped:
+        if time.time() - t0 > 2.5 and not flipped:
             flipped = True
             print("Switched the signal")
             _signal = [1] * 10 + [-1] * 10

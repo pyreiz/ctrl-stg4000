@@ -112,8 +112,30 @@ class STG4000(STG4000DL):
 
 # -----------------------------------------------------------------------------
 class STG4000Streamer(STG4000DL):
-    def _streamer(self, buffer_size: int = 100):
-        return StreamingInterface(self._info, buffer_size=buffer_size)
+
+    _dll_bufsz: int = 50_000  #: how many samples will be allocated in total across all channels
+    _outputrate: int = 50_000
+    _manager = Manager()
+    _signals: Dict[int, List[float]] = _manager.dict()
+    _is_streaming: threading.Event = threading.Event()
+    _scalar = 2_000
+
+    @property
+    def buffer_size(self) -> int:
+        "the size of the ring-buffer managed by the dll"
+        return self._dll_bufsz
+
+    @buffer_size.setter
+    def buffer_size(self, buffer_size: int = 50_000):
+        self._dll_bufsz = buffer_size
+
+    @property
+    def output_rate_in_hz(self) -> int:
+        "the rate at which the stg will send out data: Constant at 50 kHz."
+        return self._outputrate
+
+    def _streamer(self):
+        return StreamingInterface(self._info, buffer_size=self.buffer_size)
 
     def stream(
         self,
@@ -123,16 +145,10 @@ class STG4000Streamer(STG4000DL):
     ):
         # maxvalue int16 32767
         # minvalue int16 -32768
-        # info = available()[0]
-        buffer_size = 50_000
-        #  device = CStg200xStreamingNet(System.UInt32(buffer_size))
-        with self._streamer(buffer_size=buffer_size) as device:
-            # device.SetVoltageMode()
+        with self._streamer() as device:
             device.SetCurrentMode()
             device.EnableContinousMode()
-            # device.DisableContinousMode()
-
-            rate = 50_000
+            rate = self.output_rate_in_hz
             set_capacity(device, rate, 0)
             diagonalize_triggermap(device)
             device.SetOutputRate(System.UInt32(rate))
@@ -146,16 +162,12 @@ class STG4000Streamer(STG4000DL):
             print("Start stimulation")
             t0 = time.time()
             delta = 0
-            scalar = 2_000
             try:
-                amp = 0
                 while delta < duration_in_s:
                     delta = time.time() - t0
-                    amp = 1 if amp == 0 else 0
-                    prg = [scalar * s for s in signal.copy()]
+                    prg = [self._scalar * s for s in signal.copy()]
                     print(delta, signal[19])
                     while not queue(device, signal=prg, chan=0):
-                        # print(signal)
                         pass
 
             except Exception as e:
