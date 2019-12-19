@@ -148,11 +148,41 @@ class STGX(ABC):
             info = select(serial)
         print("Selecting {0:s}:SN {1:s}".format(info.DeviceName, info.SerialNumber))
         self._info = info
+        self._collect_properties()
         self.diagonalize_triggermap()
 
+    def _collect_properties(self):
+        self._str = self._info.ToString()
+        self._name = self._info.DeviceName
+        self._manufacturer = self._info.Manufacturer
+        with self.interface() as interface:
+            _, soft, hard = interface.GetStgVersionInfo("", "")
+            self._version = (soft, hard)
+            self._serial_number = int(self._info.SerialNumber)
+            self._crinua = (
+                interface.GetCurrentResolutionInNanoAmp(System.UInt32(0)) / 1000
+            )
+            self._crinma = interface.GetCurrentResolutionInNanoAmp(System.UInt32(0)) / (
+                1000 * 1000
+            )
+            self._crngma = interface.GetCurrentRangeInNanoAmp(System.UInt32(0)) / (
+                1000 * 1000
+            )
+            self._crngua = interface.GetCurrentRangeInNanoAmp(System.UInt32(0)) / (1000)
+            self._vinuv = interface.GetVoltageResolutionInMicroVolt(System.UInt32(0))
+            self._vinmv = interface.GetVoltageRangeInMicroVolt(System.UInt32(0)) / (
+                1000
+            )
+            self._dacr = interface.GetDACResolution()
+            self._achancnt = interface.GetNumberOfAnalogChannels()
+            self._trgincnt = interface.GetNumberOfTriggerInputs()
+
     @abstractmethod
+    def diagonalize_triggermap(self):
+        pass
+
     def interface(self):  # pragma no cover
-        return BasicInterface(None)
+        return BasicInterface(self._info)
 
     def sleep(self, duration_in_ms: float):
         "sleep for duration in milliseconds"
@@ -161,7 +191,7 @@ class STGX(ABC):
     @property
     def name(self):
         "returns the model name, i.e. STG4002/4/8"
-        return self._info.DeviceName
+        return self._name
 
     @property
     def version(self):
@@ -172,26 +202,66 @@ class STGX(ABC):
         )
 
     @property
-    def _version(self):
-        with self.interface() as interface:
-            _, soft, hard = interface.GetStgVersionInfo("", "")
-        return soft, hard
-
-    @property
     def serial_number(self):
         "Returns the serial number of the device"
-        return int(self._info.SerialNumber)
+        return self._serial_number
 
     @property
     def manufacturer(self):
         "Returns the name of the manufacturer"
-        return self._info.Manufacturer
+        return self._manufacturer
+
+    @property
+    def current_resolution_in_uA(self):
+        return self._crinua
+
+    @property
+    def current_resolution_in_mA(self):
+        return self._crinma
+
+    @property
+    def current_range_in_mA(self):
+        return self._crngma
+
+    @property
+    def current_range_in_uA(self):
+        return self._crngua
+
+    @property
+    def voltage_resolution_in_uV(self):
+        return self._vinuv
+
+    @property
+    def voltage_range_in_mV(self):
+        return self._vinmv
+
+    @property
+    def time_resolution_in_us(self):
+        return 20
+
+    @property
+    def time_resolution_in_ms(self):
+        return 0.02
+
+    @property
+    def DAC_resolution(self):
+        return self._dacr
+
+    @property
+    def channel_count(self):
+        "returns the number of stimulation channels"
+        return self._achancnt
+
+    @property
+    def trigin_count(self):
+        "returns the number of  trigger inputs"
+        return self._trgincnt
 
     def __repr__(self):
         return f"{str(self)} at {hex(id(self))}"
 
     def __str__(self):
-        return self._info.ToString()
+        return self._str
 
     def _set_current_mode(self, channel_index: List[int] = []):
         """set a single or all channels to current mode
@@ -229,71 +299,3 @@ class STGX(ABC):
             with self.interface() as interface:
                 for chan in channel_index:
                     interface.SetVoltageMode(System.UInt32(chan))
-
-    @property
-    def current_resolution_in_uA(self):
-        with self.interface() as interface:
-            out = interface.GetCurrentResolutionInNanoAmp(System.UInt32(0)) / 1000
-        return out
-
-    @property
-    def current_resolution_in_mA(self):
-        with self.interface() as interface:
-            out = interface.GetCurrentResolutionInNanoAmp(System.UInt32(0)) / (
-                1000 * 1000
-            )
-        return out
-
-    @property
-    def current_range_in_mA(self):
-        with self.interface() as interface:
-            out = interface.GetCurrentRangeInNanoAmp(System.UInt32(0)) / (1000 * 1000)
-        return out
-
-    @property
-    def current_range_in_uA(self):
-        with self.interface() as interface:
-            out = interface.GetCurrentRangeInNanoAmp(System.UInt32(0)) / (1000)
-        return out
-
-    @property
-    def voltage_resolution_in_uV(self):
-        with self.interface() as interface:
-            out = interface.GetVoltageResolutionInMicroVolt(System.UInt32(0))
-        return out
-
-    @property
-    def voltage_range_in_mV(self):
-        with self.interface() as interface:
-            out = interface.GetVoltageRangeInMicroVolt(System.UInt32(0)) / (1000)
-        return out
-
-    @property
-    def time_resolution_in_us(self):
-        return 20
-
-    @property
-    def time_resolution_in_ms(self):
-        return 0.02
-
-    @property
-    def DAC_resolution(self):
-        with self.interface() as interface:
-            out = interface.GetDACResolution()
-        return out
-
-    @property
-    def channel_count(self):
-        "returns the number of stimulation channels"
-        with self.interface() as interface:
-            out = interface.GetNumberOfAnalogChannels()
-        return out
-
-    @property
-    def trigin_count(self):
-        "returns the number of  trigger inputs"
-        with self.interface() as interface:
-            out = interface.GetNumberOfTriggerInputs()
-        return out
-
-
