@@ -165,7 +165,7 @@ class STG4000Streamer(STG4000DL):
     def _streamer(self):
         return StreamingInterface(self._info, buffer_size=self.buffer_size)
 
-    def stream(self, duration_in_s: int = 10):
+    def _stream(self, duration_in_s: int = 10):
         # maxvalue int16 32767
         # minvalue int16 -32768
         with self._streamer() as device:
@@ -201,3 +201,14 @@ class STG4000Streamer(STG4000DL):
                     device.SendStop(System.UInt32(i))
                 device.StopLoop()
                 device.Disconnect()
+
+    def start_streaming(self, duration_in_s: int = 10):
+        self._t = threading.Thread(
+            target=self._stream, kwargs={"duration_in_s": duration_in_s}
+        )
+        self._t.start()
+
+    def stop_streaming(self):
+        if hasattr(self, "_t"):
+            self._t.join()
+            del self._t

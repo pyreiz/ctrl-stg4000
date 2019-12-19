@@ -37,9 +37,10 @@ def test_start_stop():
     stg = STG4000Streamer()
 
     stg.set_signal(0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.1, 0.1, 49.8])
-    t = threading.Thread(target=stg.stream, kwargs={"duration_in_s": duration})
+    # t = threading.Thread(target=stg.stream, kwargs={"duration_in_s": duration})
 
-    t.start()
+    # t.start()
+    stg.start_streaming(duration_in_s=duration)
     t0 = time.time()
     flipped = False
     while True:
@@ -50,7 +51,7 @@ def test_start_stop():
                 0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.2, 0.2, 49.6]
             )
         if time.time() - t0 > duration:
-            t.join()
             break
         time.sleep(0.01)
+    stg.stop_streaming()
 
