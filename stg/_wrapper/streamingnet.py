@@ -1,17 +1,6 @@
 from typing import List
-from stg._wrapper.dll import (
-    System,
-    CURRENT,
-    VOLTAGE,
-    available,
-    select,
-    DeviceInfo,
-    StreamingInterface,
-    CStg200xStreamingNet,
-    bitmap,
-    STGX,
-)
-
+from stg._wrapper.dll import StreamingInterface, CStg200xStreamingNet, System
+from stg._wrapper.downloadnet import STG4000 as STG4000DL
 import time
 
 
@@ -72,7 +61,7 @@ def diagonalize_triggermap(device):
     device.SetupTrigger(cmap, syncmap, digoutmap, autostart, callback_threshold)
 
 
-class STG4000(STGX):
+class STG4000(STG4000DL):
     @staticmethod
     def queue(device, amplitudes: List[float], chan: int = 0):
         space = device.GetDataQueueSpace(chan)
@@ -82,11 +71,8 @@ class STG4000(STGX):
         # device.EnqueueData(chan, amplitudes)
         return space - device.GetDataQueueSpace(chan)
 
-    def interface(self, buffer_size: int = 100):
+    def _streamer(self, buffer_size: int = 100):
         return StreamingInterface(self._info, buffer_size=buffer_size)
-
-    def diagonalize_triggermap(self):
-        pass
 
     def stream(
         self,
@@ -100,7 +86,7 @@ class STG4000(STGX):
         # info = available()[0]
         buffer_size = 50_000
         #  device = CStg200xStreamingNet(System.UInt32(buffer_size))
-        with self.interface(buffer_size=buffer_size) as device:
+        with self._streamer(buffer_size=buffer_size) as device:
             # device.SetVoltageMode()
             device.SetCurrentMode()
             device.EnableContinousMode()
