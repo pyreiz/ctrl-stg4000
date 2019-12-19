@@ -1,35 +1,44 @@
-from stg._wrapper.streamingnet import STG4000Streamer
+from stg._wrapper.streamingnet import STG4000Streamer, SignalMapping
 import pytest
 import threading
 import time
 
-# @pytest.fixture(scope="module")
-# def stg():
-#     stg = STG4000Streamer()
-#     assert stg.output_rate_in_khz == 50
-#     assert list(stg.get_signals().keys()) == []
-#     assert stg.buffer_size == 100
-#     stg.set_signal(
-#         channel_index=0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.1, 0.1, 49.8]
-#     )
-#     yield stg
+
+def test_signal_mapping():
+    s = SignalMapping()
+    with pytest.raises(ValueError):
+        s[-1] = []
+    with pytest.raises(ValueError):
+        s[8] = []
+    s[0] = [1, -1, 0]
+    assert s[0] == [2000, -2000, 0]  # due to the scalar
 
 
-# def test_properties(stg):
-#     stg.buffer_size = 99
-#     assert stg.buffer_size == 99
+@pytest.fixture(scope="module")
+def stg():
+    stg = STG4000Streamer()
+    assert stg.output_rate_in_hz == 50_000
+    assert stg.buffer_size == 50_000
+    stg.set_signal(
+        channel_index=0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.1, 0.1, 49.8]
+    )
+    assert len(stg._signals[0]) == 2500
+    assert stg._signals[0][0] == 2000  # because of the scaler
+    yield stg
+
+
+def test_properties(stg):
+    stg.buffer_size = 99
+    assert stg.buffer_size == 99
 
 
 def test_start_stop():
-    stg = STG4000Streamer()
-    from multiprocessing import Manager
-
-    manager = Manager()
-    signal = manager.list()
-    signal = [1] * 5 + [-1] * 5 + [0] * 1000
     duration = 5.0
+    stg = STG4000Streamer()
+
+    stg.set_signal(0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.1, 0.1, 49.8])
     t = threading.Thread(
-        target=stg.stream, args=(signal,), kwargs={"duration_in_s": duration}
+        target=stg.stream, args=(stg._signals,), kwargs={"duration_in_s": duration}
     )
 
     t.start()
@@ -38,9 +47,10 @@ def test_start_stop():
     while True:
         if time.time() - t0 > 2.5 and not flipped:
             flipped = True
-            print("Switched the signal")
-            _signal = [1] * 10 + [-1] * 10
-            signal[0:20] = _signal[0:20]
+            print("Switch the signal")
+            stg.set_signal(
+                0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.2, 0.2, 49.6]
+            )
         if time.time() - t0 > duration:
             t.join()
             break

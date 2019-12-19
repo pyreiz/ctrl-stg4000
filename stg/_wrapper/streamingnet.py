@@ -1,4 +1,3 @@
-from multiprocessing import Manager
 import threading
 from typing import List, Dict, Callable
 from stg._wrapper.dll import (
@@ -11,7 +10,6 @@ from stg._wrapper.dll import (
 from stg._wrapper.downloadnet import STG4000 as STG4000DL
 from stg.pulsefile import decompress
 import time
-from functools import lru_cache
 
 
 def queue(device, signal: List[int], chan: int = 0):
@@ -110,15 +108,31 @@ class STG4000(STG4000DL):
                 device.Disconnect()
 
 
+class SignalMapping(dict):
+    lock = threading.Lock()
+    _scalar = 2_000  #: to make 1 equal to 1mA in current mode
+
+    def __init__(self):
+        super().__init__()
+
+    def __setitem__(self, key, value):
+        with self.lock:
+            if type(key) != int or key < 0 or key > 7:
+                raise ValueError("Key must be a possible channel from 0-7")
+            value = [v * self._scalar for v in value]
+            super().__setitem__(key, value)
+
+    def __getitem__(self, key):
+        with self.lock:
+            return super().__getitem__(key)
+
+
 # -----------------------------------------------------------------------------
 class STG4000Streamer(STG4000DL):
 
     _dll_bufsz: int = 50_000  #: how many samples will be allocated in total across all channels
     _outputrate: int = 50_000
-    _manager = Manager()
-    _signals: Dict[int, List[float]] = _manager.dict()
-    _is_streaming: threading.Event = threading.Event()
-    _scalar = 2_000
+    _signals = SignalMapping()
 
     @property
     def buffer_size(self) -> int:
@@ -134,12 +148,26 @@ class STG4000Streamer(STG4000DL):
         "the rate at which the stg will send out data: Constant at 50 kHz."
         return self._outputrate
 
+    def set_signal(
+        self,
+        channel_index: int = 0,
+        amplitudes_in_mA: List[float,] = [0],
+        durations_in_ms: List[float,] = [0],
+    ):
+        "set one of the signal templates with decompressed amps/durs"
+        signal = decompress(
+            amplitudes_in_mA=amplitudes_in_mA,
+            durations_in_ms=durations_in_ms,
+            rate_in_hz=self._outputrate,
+        )
+        self._signals[channel_index] = signal
+
     def _streamer(self):
         return StreamingInterface(self._info, buffer_size=self.buffer_size)
 
     def stream(
         self,
-        signal: Dict[int, List[float]],
+        signals: Dict[int, List[float]],
         duration_in_s: int = 10,
         rate_in_hz: int = 50_000,
     ):
@@ -165,8 +193,8 @@ class STG4000Streamer(STG4000DL):
             try:
                 while delta < duration_in_s:
                     delta = time.time() - t0
-                    prg = [self._scalar * s for s in signal.copy()]
-                    print(delta, signal[19])
+                    prg = signals[0].copy()
+                    print(delta, prg[19])
                     while not queue(device, signal=prg, chan=0):
                         pass
 
