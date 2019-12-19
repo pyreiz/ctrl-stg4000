@@ -57,7 +57,44 @@ class STG4000(STGX):
         with self.interface() as interface:
             interface.SendStart(System.UInt32(bitmap(triggerIndex)))
 
+    def set_mode(self, channel_index: List[int] = [], mode: str = "current"):
+        """set a single or all channels to voltage or current mode
+        
+        args
+        ----
+        channel_index:list
+            defaults to all, which sets all channels to current mode
+            otherwise, takes an integer of the target channel.
+            Indexing starts at 0.    
+        mode: str {"current", "voltage"}    
+            defaults to current
+        """
+        if mode == "current":
+            self._set_current_mode(channel_index)
+            return CURRENT
+        elif mode == "voltage":
+            self._set_voltage_mode(channel_index)
+            return VOLTAGE
+        else:  # pragma no cover
+            raise ValueError(
+                f"Unknow mode {mode}. select either 'current' or ' 'voltage'"
+            )
+
     def diagonalize_triggermap(self):
+        """Normalize the channelmap to a diagonal
+                
+        Triggers are mapped to channels according to the channelmap. This is 
+        done at the lower level with interface.SetupTrigger. 
+        
+        Use this function to normalize the mapping of trigger to channel to a diagonal identity, i.e. trigger 0 maps to channel 0,  so on.
+
+            +----------+---+---+---+---+---+---+---+---+
+            | Trigger  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+            +----------+---+---+---+---+---+---+---+---+
+            | Channel  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+            +----------+---+---+---+---+---+---+---+---+
+        
+        """
         channelmap = []
         syncoutmap = []
         repeat = []
@@ -114,20 +151,8 @@ class STG4000(STGX):
         amplitudes = [System.Int32(a * 1000_000) for a in amplitudes_in_mA]
         durations = [System.UInt64(s * 1000) for s in durations_in_ms]
 
-        if mode == "current":
-            self.set_current_mode([channel_index])
-            with self.interface() as interface:
-                interface.PrepareAndSendData(
-                    System.UInt32(channel_index), amplitudes, durations, CURRENT
-                )
-        elif mode == "voltage":
-            self.set_voltage_mode([channel_index])
-            with self.interface() as interface:
-                interface.PrepareAndSendData(
-                    System.UInt32(channel_index), amplitudes, durations, VOLTAGE
-                )
-        else:
-            raise ValueError(
-                f"Unknow mode {mode}. select either 'current' or ' 'voltage'"
+        MODE = self.set_mode([channel_index], mode)
+        with self.interface() as interface:
+            interface.PrepareAndSendData(
+                System.UInt32(channel_index), amplitudes, durations, MODE
             )
-

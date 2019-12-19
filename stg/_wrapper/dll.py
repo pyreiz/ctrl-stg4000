@@ -193,7 +193,7 @@ class STGX(ABC):
     def __str__(self):
         return self._info.ToString()
 
-    def set_current_mode(self, channel_index: List[int] = []):
+    def _set_current_mode(self, channel_index: List[int] = []):
         """set a single or all channels to current mode
         
         args
@@ -211,7 +211,7 @@ class STGX(ABC):
                 for chan in channel_index:
                     interface.SetCurrentMode(System.UInt32(chan))
 
-    def set_voltage_mode(self, channel_index: List[int] = []):
+    def _set_voltage_mode(self, channel_index: List[int] = []):
         """set a single or all channels to voltage mode
         
         args
@@ -296,20 +296,4 @@ class STGX(ABC):
             out = interface.GetNumberOfTriggerInputs()
         return out
 
-    @abstractmethod
-    def diagonalize_triggermap(self):
-        """Normalize the channelmap to a diagonal
-                
-        Triggers are mapped to channels according to the channelmap. This is 
-        done at the lower level with interface.SetupTrigger. 
-        
-        Use this function to normalize the mapping of trigger to channel to a diagonal identity, i.e. trigger 0 maps to channel 0,  so on.
 
-            +----------+---+---+---+---+---+---+---+---+
-            | Trigger  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
-            +----------+---+---+---+---+---+---+---+---+
-            | Channel  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
-            +----------+---+---+---+---+---+---+---+---+
-        
-        """
-        pass
