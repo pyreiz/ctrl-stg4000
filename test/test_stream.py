@@ -18,7 +18,7 @@ def test_signal_mapping():
 def stg():
     stg = STG4000Streamer()
     assert stg.output_rate_in_hz == 50_000
-    assert stg.buffer_size == 50_000
+    assert stg.buffer_size == 5_000
     stg.set_signal(
         channel_index=0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.1, 0.1, 49.8]
     )

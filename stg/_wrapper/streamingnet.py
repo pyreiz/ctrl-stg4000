@@ -20,19 +20,17 @@ def queue(device, signal: List[int], chan: int = 0):
     return space - device.GetDataQueueSpace(chan)
 
 
-def set_capacity(device, capacity: int, channel: int = 0):
+def set_capacity(device, capacity: int):
     total_memory = device.GetTotalMemory()
-    nTrigger = device.GetNumberOfTriggerInputs()
     print(f"Total memory: {total_memory}")
-    trigger_capacity = []
-    capacity = total_memory / nTrigger
-    print(f"Capacity: {capacity}")
-    for i in range(nTrigger):
-        if i == channel:
-            trigger_capacity.append(System.UInt32(capacity))
-        else:
-            trigger_capacity.append(System.UInt32(1))
-
+    nTrigger = device.GetNumberOfTriggerInputs()
+    max_capacity = total_memory / nTrigger
+    print(f"Capacity: {capacity}/{max_capacity}")
+    if capacity > max_capacity:  # pragma  no cover
+        raise ValueError(
+            f"Capacity {capacity} is higher than max_capacity {max_capacity}"
+        )
+    trigger_capacity = [System.UInt32(capacity) for i in range(nTrigger)]
     device.SetCapacity(trigger_capacity)
 
 
@@ -75,7 +73,7 @@ class SignalMapping(dict):
 # -----------------------------------------------------------------------------
 class STG4000Streamer(STG4000DL):
 
-    _dll_bufsz: int = 50_000  #: how many samples will be allocated in total across all channels
+    _dll_bufsz: int = 5_000  #: how many samples will be allocated in total across all channels (10 % of outputrate -> 100 ms)
     _streaming = threading.Event()
     _outputrate: int = 50_000
     _signals = SignalMapping()
@@ -117,7 +115,7 @@ class STG4000Streamer(STG4000DL):
             device.EnableContinousMode()
             rate = self.output_rate_in_hz
             capacity = int(rate * capacity_in_s)
-            set_capacity(device, capacity, 0)
+            set_capacity(device, capacity)
             diagonalize_triggermap(device)
             device.SetOutputRate(System.UInt32(rate))
 
@@ -129,17 +127,17 @@ class STG4000Streamer(STG4000DL):
             try:
                 barrier.wait()
                 t0 = time.time()
-                delta = 0.0
-                print("Start stimulation")
+                print("Start streaming updating with a latency of ")
                 while self._streaming.is_set():
                     delta = time.time() - t0
                     prg = self._signals[0].copy()
                     print(delta, prg[19])
-                    sent = queue(device, signal=prg, chan=0)
-                    while not sent:
-                        sent = queue(device, signal=prg, chan=0)
-                        if self._streaming.is_set() == False:
-                            break
+                    for chan, prg in self._signals.items():
+                        sent = queue(device, signal=prg, chan=chan)
+                        while not sent:
+                            sent = queue(device, signal=prg, chan=chan)
+                            if self._streaming.is_set() == False:
+                                break
 
             except Exception as e:  # pragma no cover
                 print(f"Exception: {e}")
