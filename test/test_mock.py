@@ -34,6 +34,10 @@ def stg(monkeypatch):
     yield stg
 
 
+def test_repr(stg):
+    assert "Mock at" in repr(stg)
+
+
 field_values = [
     ("name", "STG0007"),
     ("serial_number", 70007),
@@ -49,9 +53,15 @@ field_values = [
     ("voltage_resolution_in_uV", 1000),
     ("voltage_range_in_uV", 8000.0),
     ("trigin_count", 2),
+    ("manufacturer", "ACME"),
 ]
 
 
 @pytest.mark.parametrize("field, value", field_values)
 def test_properties(stg, field, value):
     assert getattr(stg, field) == value
+
+
+def test_set_mode(stg):
+    stg.set_mode(mode="current")
+    stg.set_mode(mode="voltage")
