@@ -66,6 +66,21 @@ class CStg200xMockNet:
         print("MOCK:DISCONNECT from a MOCK STG")
         pass
 
+    def GetCurrentResolutionInNanoAmp(self, ptr: System.UInt32) -> int:
+        return 1
+
+    def GetCurrentRangeInNanoAmp(self, ptr: System.UInt32) -> int:
+        return 1
+
+    def GetVoltageResolutionInMicroVolt(self, ptr: System.UInt32) -> int:
+        return 1
+
+    def GetVoltageRangeInMicroVolt(self, ptr: System.UInt32) -> int:
+        return 1
+
+    def GetDACResolution(self) -> int:
+        return 1
+
     def GetNumberOfAnalogChannels(self):
         return 2
 
