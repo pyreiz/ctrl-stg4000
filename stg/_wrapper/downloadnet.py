@@ -17,6 +17,46 @@ class STG4000(STGX):
     def interface(self):
         return DownloadInterface(self._info)
 
+    def stop_stimulation(self, triggerIndex: List[int] = []):
+        """stops all trigger inputs or a selection based on a list 
+        
+        Triggers are mapped to channels according to the channelmap. By default, all triggers are mapped to channels following diagonal identity, i.e. trigger 0 maps to channel 0. This is done during initialization of the STG4000 object. Use :meth:`~STG4000.diagonalize_triggermap` to repeat this normalization.
+        
+        args
+        ----
+        channel_index:list
+            defaults to all, which sets all channels to voltage mode
+            otherwise, takes a list of integers of the targets, 
+            e.g. [0,1]
+            Indexing starts at 0.
+        
+        """
+
+        if triggerIndex == []:
+            triggerIndex = [c for c in range(self.channel_count)]
+        with self.interface() as interface:
+            interface.SendStop(System.UInt32(bitmap(triggerIndex)))
+
+    def start_stimulation(self, triggerIndex: List[int] = []):
+        """starts all trigger inputs or a selection based on a list 
+        
+        Triggers are mapped to channels according to the channelmap. By default, all triggers are mapped to channels following diagonal identity, i.e. trigger 0 maps to channel 0. This is done during initialization of the STG4000 object. Use :meth:`~STG4000.diagonalize_triggermap` to repeat this normalization.
+        
+        args
+        ----
+        channel_index:list
+            defaults to all, which sets all channels to voltage mode
+            otherwise, takes a list of integers of the targets, 
+            e.g. [0,1]
+            Indexing starts at 0.
+        
+        """
+
+        if triggerIndex == []:
+            triggerIndex = [c for c in range(self.channel_count)]
+        with self.interface() as interface:
+            interface.SendStart(System.UInt32(bitmap(triggerIndex)))
+
     def diagonalize_triggermap(self):
         channelmap = []
         syncoutmap = []
