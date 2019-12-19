@@ -1,11 +1,17 @@
 from multiprocessing import Manager
-from multiprocessing.managers import DictProxy
 import threading
-from typing import List
-from stg._wrapper.dll import StreamingInterface, CStg200xStreamingNet, System, STGX
+from typing import List, Dict, Callable
+from stg._wrapper.dll import (
+    StreamingInterface,
+    CStg200xStreamingNet,
+    System,
+    STGX,
+    DeviceInfo,
+)
 from stg._wrapper.downloadnet import STG4000 as STG4000DL
 from stg.pulsefile import decompress
 import time
+from functools import lru_cache
 
 
 def queue(device, signal: List[int], chan: int = 0):
@@ -111,20 +117,47 @@ class STG4000(STG4000DL):
                 device.Disconnect()
 
 
-def queue_forever(signals: DictProxy, running: threading.Event):
+# ------------------------------------------------------------------------------
+def queue_once(device: StreamingInterface, signal: List[float], chan: int = 0):
+    space = device.GetDataQueueSpace(chan)
+    if space < len(signal):
+        return 0
+    device.EnqueueData(chan, System.Array[System.Int16](signal))
+    return space - device.GetDataQueueSpace(chan)
+
+
+def queue_forever(device, signals: Dict[int, List[float]], running: threading.Event):
+    print("STREAMER: started queuing forever")
     while running.is_set():
-        pass
+        for chan, signal in signals.items():
+            while not queue_once(device, signal=signal, chan=chan):
+                if not running.is_set():
+                    break
+    print("STREAMER: stopped queuing forever")
+
+
+def connect(
+    info: DeviceInfo, buffer_size: int = 100, cache=dict()
+) -> StreamingInterface:
+    try:
+        dev = cache[(info, buffer_size)]
+    except KeyError:
+        dev = StreamingInterface(info, buffer_size=buffer_size)
+        cache[(info, buffer_size)] = dev
+    return dev
 
 
 class STG4000Streamer(STGX):
 
-    _dll_bufsz = 100
-    _outputrate = 50
+    _dll_bufsz: int = 100
+    _outputrate: int = 50
     _manager = Manager()
-    _signals = _manager.dict()
+    _signals: Dict[int, List[float]] = _manager.dict()
+    _is_streaming: threading.Event = threading.Event()
+    _scalar = 2_000
 
-    def _streamer(self, buffer_size: int = 100):
-        return StreamingInterface(self._info, buffer_size=buffer_size)
+    def _streamer(self) -> StreamingInterface:
+        return connect(info=self._info, buffer_size=self._dll_bufsz)
 
     @property
     def buffer_size(self) -> int:
@@ -141,27 +174,44 @@ class STG4000Streamer(STGX):
         return self._outputrate
 
     def diagonalize_triggermap(self):
-        with self._streamer(buffer_size=self._dll_bufsz) as interface:
+        with self._streamer() as interface:
             diagonalize_triggermap(interface)
 
-    def template(
+    @property
+    def is_streaming(self) -> bool:
+        return self._is_streaming.is_set()
+
+    def get_signals(self) -> Dict[int, List[float]]:
+        "get a dictionary of the currently buffered signal templates"
+        # pylint: disable=no-member
+        return self._signals.copy()
+
+    def set_signal(
         self,
         channel_index: int = 0,
         amplitudes_in_mA: List[float,] = [0],
         durations_in_ms: List[float,] = [0],
     ):
-
+        "set one of the signal templates with decompressed amps/durs"
         signal = decompress(
             amplitudes_in_mA=amplitudes_in_mA,
             durations_in_ms=durations_in_ms,
             rate_in_khz=self._outputrate,
         )
-        self._signals[channel_index] = signal
+        # pylint: disable=unsupported-assignment-operation
+        self._signals[channel_index] = [s * self._scalar for s in signal]
 
     def start(self, mode="current"):
-        running: threading.Event()
-        t = threading.Thread(target=queue_forever, args=(self._signals, running))
+        "stop streaming the signal templates"
+        self._is_streaming.set()
+        t = threading.Thread(
+            target=queue_forever,
+            args=(self._streamer(), self._signals, self._is_streaming),
+        )
+        self._streamer().connect()
         t.start()
-        self.sleep(1000)
-        running.clear()
 
+    def stop(self):
+        "stop streaming the signal templates"
+        self._is_streaming.clear()
+        self._streamer().disconnect()

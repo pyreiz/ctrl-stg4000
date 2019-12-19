@@ -27,9 +27,9 @@ STG_DestinationEnumNet = _mock
 
 
 System = MagicMock()
-System.UInt32 = transit
-System.Int16 = transit
-System.Array = transit
+System.UInt32 = int
+System.Int16 = int
+System.Array = list
 
 
 def DataQueueSpace():
@@ -66,16 +66,16 @@ class CStg200xMockNet:
         print("MOCK:DISCONNECT from a MOCK STG")
         pass
 
-    def GetCurrentResolutionInNanoAmp(self, ptr: System.UInt32) -> int:
+    def GetCurrentResolutionInNanoAmp(self, ptr) -> int:
         return 1
 
-    def GetCurrentRangeInNanoAmp(self, ptr: System.UInt32) -> int:
+    def GetCurrentRangeInNanoAmp(self, ptr) -> int:
         return 1
 
-    def GetVoltageResolutionInMicroVolt(self, ptr: System.UInt32) -> int:
+    def GetVoltageResolutionInMicroVolt(self, ptr) -> int:
         return 1
 
-    def GetVoltageRangeInMicroVolt(self, ptr: System.UInt32) -> int:
+    def GetVoltageRangeInMicroVolt(self, ptr) -> int:
         return 1
 
     def GetDACResolution(self) -> int:
