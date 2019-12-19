@@ -42,7 +42,17 @@ def _mock(*args, **kwargs):
     pass
 
 
-CMcsUsbListNet = _mock
-DeviceEnumNet = _mock
+from unittest.mock import Mock, PropertyMock
+from unittest.mock import MagicMock
+
+DeviceInfo = MagicMock()
+DeviceInfo.DeviceName = "STGmock"
+DeviceInfo.SerialNumber = "1007"
+DeviceList = MagicMock()
+DeviceList.GetNumberOfDevices = MagicMock(return_value=1)
+DeviceList.GetUsbListEntry = MagicMock(return_value=DeviceInfo)
+CMcsUsbListNet = MagicMock(return_value=DeviceList)
+DeviceEnumNet = Mock()
+DeviceEnumNet.MCS_STG_DEVICE = None
 STG_DestinationEnumNet = _mock
 System = _mock
