@@ -75,6 +75,7 @@ class SignalMapping(dict):
 # -----------------------------------------------------------------------------
 class STG4000Streamer(STG4000DL):
 
+    _capacity: float = 1  # 100ms
     _dll_bufsz: int = 50_000  #: how many samples will be allocated in total across all channels
     _streaming = threading.Event()
     _outputrate: int = 50_000
@@ -88,6 +89,14 @@ class STG4000Streamer(STG4000DL):
     @buffer_size.setter
     def buffer_size(self, buffer_size: int = 50_000):
         self._dll_bufsz = buffer_size
+
+    @property
+    def channel_capacity_in_s(self) -> float:
+        return self._capacity
+
+    @channel_capacity_in_s.setter
+    def channel_capacity_in_s(self, capacity_in_s: float):
+        self._capacity = capacity_in_s
 
     @property
     def output_rate_in_hz(self) -> int:
@@ -112,18 +121,17 @@ class STG4000Streamer(STG4000DL):
         return StreamingInterface(self._info, buffer_size=self.buffer_size)
 
     def _stream(self, barrier: threading.Barrier):
-        # maxvalue int16 32767
-        # minvalue int16 -32768
         with self.streamer() as device:
             device.SetCurrentMode()
             device.EnableContinousMode()
             rate = self.output_rate_in_hz
-            set_capacity(device, rate, 0)
+            capacity = int(rate * self.channel_capacity_in_s)
+            set_capacity(device, capacity, 0)
             diagonalize_triggermap(device)
             device.SetOutputRate(System.UInt32(rate))
 
             device.StartLoop()
-            time.sleep(1)
+            time.sleep(1)  # suggest by documentation for initialization of the loop
             nTrigger = device.GetNumberOfTriggerInputs()
             for i in range(nTrigger):
                 device.SendStart(System.UInt32(i))
