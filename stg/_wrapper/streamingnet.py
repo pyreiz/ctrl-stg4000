@@ -5,6 +5,7 @@
 from typing import List
 from stg._wrapper.dll import StreamingInterface, CStg200xStreamingNet, System, STGX
 from stg._wrapper.downloadnet import STG4000 as STG4000DL
+from stg.pulsefile import decompress
 import time
 
 
@@ -31,7 +32,7 @@ def set_capacity(device, capacity: int, channel: int = 0):
     device.SetCapacity(trigger_capacity)
 
 
-def diagonalize_triggermap(device):
+def diagonalize_triggermap(device, callback_percent: int = 10):
     nTrigger = device.GetNumberOfTriggerInputs()
     cmap = []
     syncmap = []
@@ -43,7 +44,7 @@ def diagonalize_triggermap(device):
         syncmap.append(System.UInt32(0 << i))  # no syncout
         digoutmap.append(System.UInt32(1 << i))
         autostart.append(System.UInt32(0))  #
-        callback_threshold.append(System.UInt32(10))  # 10% of buffersize
+        callback_threshold.append(System.UInt32(callback_percent))  # 10% of buffersize
 
     device.SetupTrigger(cmap, syncmap, digoutmap, autostart, callback_threshold)
 
@@ -111,12 +112,32 @@ class STG4000(STG4000DL):
                 device.Disconnect()
 
 
-class ContinualSTG4000(STGX):
+class STG4000Streamer(STGX):
 
-    templates = dict()
+    _signals = dict()
+    _dll_bufsz = 100
+    _outputrate = 50
 
     def _streamer(self, buffer_size: int = 100):
         return StreamingInterface(self._info, buffer_size=buffer_size)
+
+    @property
+    def buffer_size(self) -> int:
+        "the size of the ring-buffer managed by the dll"
+        return self._dll_bufsz
+
+    @buffer_size.setter
+    def buffer_size(self, buffer_size: int = 100):
+        self._dll_bufsz = buffer_size
+
+    @property
+    def output_rate_in_khz(self) -> int:
+        "the rate at which the stg will send out data: Constant at 50 kHz."
+        return self._outputrate
+
+    def diagonalize_triggermap(self):
+        with self._streamer(buffer_size=self._dll_bufsz) as interface:
+            diagonalize_triggermap(interface)
 
     def template(
         self,
@@ -126,4 +147,9 @@ class ContinualSTG4000(STGX):
         mode="current",
     ):
 
-        self.templates[channel_index] = []
+        signal = decompress(
+            amplitudes_in_mA=amplitudes_in_mA,
+            durations_in_ms=durations_in_ms,
+            rate_in_khz=self._outputrate,
+        )
+        self._signals[channel_index] = signal
