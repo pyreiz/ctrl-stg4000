@@ -36,14 +36,15 @@ def test_increase_pulse_width():
     "start streaming a biphasic pulse, after 5s, increase the pulse-width"
     stg = STG4000Streamer()
     stg.set_signal(0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.1, 0.1, 49.8])
-    stg.start_streaming()
-
+    stg.start_streaming(capacity_in_s=0.1)
     t0 = time.time()
     flipped = False
+
     while time.time() - t0 < 10:
         if time.time() - t0 > 5 and not flipped:
             flipped = True
             print("Switch the signal")
+            print("\a")
             stg.set_signal(
                 0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.2, 0.2, 49.6]
             )
