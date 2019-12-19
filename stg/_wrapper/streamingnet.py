@@ -12,23 +12,6 @@ def queue(device, signal: List[int], chan: int = 0):
     return space - device.GetDataQueueSpace(chan)
 
 
-def connect(device, info):
-    err = device.Connect(info)
-    if err != 0:
-        raise ConnectionError(
-            "Error {0:f} for {1:s}:SN {2:s}".format(
-                err, info.DeviceName, info.SerialNumber
-            )
-        )
-    else:
-        print(
-            "Connected successfully with {0:s}:SN {1:s}".format(
-                info.DeviceName, info.SerialNumber
-            )
-        )
-    return device.GetNumberOfTriggerInputs()
-
-
 def set_capacity(device, capacity: int, channel: int = 0):
     total_memory = device.GetTotalMemory()
     nTrigger = device.GetNumberOfTriggerInputs()
