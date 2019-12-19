@@ -104,6 +104,7 @@ class STG4000(STG4000DL):
                 while time.time() - t0 < 10:
                     amp = 1 if amp == 0 else 0
                     signal = [scalar * amp] * 5 + [scalar * -amp] * 5 + [0, 0] * 500
+                    print(signal)
                     while not queue(device, signal=signal, chan=0):
                         pass
 
@@ -131,16 +132,18 @@ def queue_forever(device, signals: Dict[int, List[float]], running: threading.Ev
     while running.is_set():
         for chan, signal in signals.items():
             while not queue_once(device, signal=signal, chan=chan):
+                print(signal)
                 if not running.is_set():
                     break
     print("STREAMER: stopped queuing forever")
 
 
-def connect(
+def get_cached(
     info: DeviceInfo, buffer_size: int = 100, cache=dict()
 ) -> StreamingInterface:
     try:
         dev = cache[(info, buffer_size)]
+        print("Found one")
     except KeyError:
         dev = StreamingInterface(info, buffer_size=buffer_size)
         cache[(info, buffer_size)] = dev
@@ -157,7 +160,7 @@ class STG4000Streamer(STGX):
     _scalar = 2_000
 
     def _streamer(self) -> StreamingInterface:
-        return connect(info=self._info, buffer_size=self._dll_bufsz)
+        return get_cached(info=self._info, buffer_size=self._dll_bufsz)
 
     @property
     def buffer_size(self) -> int:
@@ -208,10 +211,33 @@ class STG4000Streamer(STGX):
             target=queue_forever,
             args=(self._streamer(), self._signals, self._is_streaming),
         )
-        self._streamer().connect()
+        # self._streamer().connect()
+        rate = int(self._outputrate * 1000)
+        device = self._streamer()
+        device.connect()
+        device.SetCurrentMode()
+        device.EnableContinousMode()
+        set_capacity(device, rate, 0)
+        diagonalize_triggermap(device)
+        device.SetOutputRate(System.UInt32(rate))
+
+        device.StartLoop()
+        time.sleep(1)
+        nTrigger = device.GetNumberOfTriggerInputs()
+        for i in range(nTrigger):
+            device.SendStart(System.UInt32(i))
+
+        print("Start stimulation")
         t.start()
 
     def stop(self):
         "stop streaming the signal templates"
         self._is_streaming.clear()
-        self._streamer().disconnect()
+        device = self._streamer()
+        nTrigger = device.GetNumberOfTriggerInputs()
+        for i in range(nTrigger):
+            device.SendStop(System.UInt32(i))
+        device.StopLoop()
+        device.Disconnect()
+        # device.disconnect()
+

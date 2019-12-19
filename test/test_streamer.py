@@ -12,7 +12,6 @@ def stg():
         channel_index=0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.1, 0.1, 49.8]
     )
     yield stg
-    stg.stop()
 
 
 def test_properties(stg):
@@ -22,8 +21,8 @@ def test_properties(stg):
 
 def test_start_stop(stg):
     stg.set_signal(
-        channel_index=0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.1, 0.1, 49.8]
+        channel_index=0, amplitudes_in_mA=[1, -1, 0], durations_in_ms=[0.1, 0.1, 1]
     )
     stg.start()
-    stg.sleep(1000)
+    stg.sleep(5000)
     stg.stop()
