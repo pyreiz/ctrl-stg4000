@@ -19,7 +19,8 @@ class DeviceInfo:
     SerialNumber = "70007"
     Manufacturer = "ACME"
 
-    def ToString(self):
+    @staticmethod
+    def ToString():
         return "Mock"
 
 
