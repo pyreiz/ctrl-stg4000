@@ -7,16 +7,13 @@ from stg._wrapper.dll import (
     available,
     select,
     DeviceInfo,
-    DownloadInterface,
+    StreamingInterface,
     bitmap,
     STGX,
 )
 
 
 class STG4000(STGX):
-    def interface(self):
-        return DownloadInterface(self._info)
-
     def stop_stimulation(self, triggerIndex: List[int] = []):
         """stops all trigger inputs or a selection based on a list 
         

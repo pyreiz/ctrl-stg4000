@@ -182,7 +182,7 @@ class STGX(ABC):
         pass
 
     def interface(self):  # pragma no cover
-        return BasicInterface(self._info)
+        return DownloadInterface(self._info)
 
     def sleep(self, duration_in_ms: float):
         "sleep for duration in milliseconds"
