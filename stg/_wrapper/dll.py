@@ -138,7 +138,12 @@ class StreamingInterface(BasicInterface):
 class STGX(ABC):
     def __init__(self, serial: int = None):
         if serial is None:
-            info = available()[0]
+            try:
+                info = available()[0]
+            except IndexError as e:
+                raise ConnectionError(
+                    "No STG connected, or connected but not switched on."
+                )
         else:
             info = select(serial)
         print("Selecting {0:s}:SN {1:s}".format(info.DeviceName, info.SerialNumber))
