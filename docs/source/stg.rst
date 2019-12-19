@@ -1,8 +1,8 @@
 STG
 ---
 
-Basic Capabilitites of the STG
-******************************
+Properties of the STG
+*********************
 
 .. automodule:: stg._wrapper.dll
    :members: STGX

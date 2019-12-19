@@ -140,11 +140,11 @@ class STGX(ABC):
         if serial is None:
             try:
                 info = available()[0]
-            except IndexError as e:
+            except IndexError as e:  # pragma no cover
                 raise ConnectionError(
                     "No STG connected, or connected but not switched on."
                 )
-        else:
+        else:  # pragma no cover
             info = select(serial)
         print("Selecting {0:s}:SN {1:s}".format(info.DeviceName, info.SerialNumber))
         self._info = info
@@ -178,7 +178,7 @@ class STGX(ABC):
             self._trgincnt = interface.GetNumberOfTriggerInputs()
 
     @abstractmethod
-    def diagonalize_triggermap(self):
+    def diagonalize_triggermap(self):  # pragma no cover
         pass
 
     def interface(self):  # pragma no cover
@@ -189,12 +189,12 @@ class STGX(ABC):
         sleep(duration_in_ms / 1000)
 
     @property
-    def name(self):
+    def name(self) -> str:
         "returns the model name, i.e. STG4002/4/8"
         return self._name
 
     @property
-    def version(self):
+    def version(self) -> str:
         "Returns the current hardware and software version"
         soft, hard = self._version
         return "Hardware - {0} : Software - Version: {1}".format(
@@ -202,65 +202,74 @@ class STGX(ABC):
         )
 
     @property
-    def serial_number(self):
+    def serial_number(self) -> int:
         "Returns the serial number of the device"
         return self._serial_number
 
     @property
-    def manufacturer(self):
+    def manufacturer(self) -> str:
         "Returns the name of the manufacturer"
         return self._manufacturer
 
     @property
-    def current_resolution_in_uA(self):
+    def current_resolution_in_uA(self) -> int:
+        "Return the current resolution in µA"
         return self._crinua
 
     @property
-    def current_resolution_in_mA(self):
+    def current_resolution_in_mA(self) -> int:
+        "Return the current resolution in mA"
         return self._crinma
 
     @property
-    def current_range_in_mA(self):
+    def current_range_in_mA(self) -> int:
+        "Return the current range in mA"
         return self._crngma
 
     @property
-    def current_range_in_uA(self):
+    def current_range_in_uA(self) -> int:
+        "Return the current range in uA"
         return self._crngua
 
     @property
-    def voltage_resolution_in_uV(self):
+    def voltage_resolution_in_uV(self) -> int:
+        "Return the voltage resolution in µV"
         return self._vinuv
 
     @property
-    def voltage_range_in_mV(self):
+    def voltage_range_in_mV(self) -> int:
+        "Return the voltage resolution in mV"
         return self._vinmv
 
     @property
-    def time_resolution_in_us(self):
+    def time_resolution_in_us(self) -> int:
+        "Return the time resolution in µs"
         return 20
 
     @property
-    def time_resolution_in_ms(self):
+    def time_resolution_in_ms(self) -> float:
+        "Return the time resolution in ms"
         return 0.02
 
     @property
-    def DAC_resolution(self):
+    def DAC_resolution(self) -> int:
+        "Return the DAC resolution in bits"
         return self._dacr
 
     @property
-    def channel_count(self):
+    def channel_count(self) -> int:
         "returns the number of stimulation channels"
         return self._achancnt
 
     @property
-    def trigin_count(self):
+    def trigin_count(self) -> int:
         "returns the number of  trigger inputs"
         return self._trgincnt
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{str(self)} at {hex(id(self))}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._str
 
     def _set_current_mode(self, channel_index: List[int] = []):

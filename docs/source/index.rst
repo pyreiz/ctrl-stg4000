@@ -6,6 +6,8 @@
 Welcome to STG4000's documentation!
 ===================================
 
+The API is located in stg.api. Import from there.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:

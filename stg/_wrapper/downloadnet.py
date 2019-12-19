@@ -57,7 +57,7 @@ class STG4000(STGX):
         with self.interface() as interface:
             interface.SendStart(System.UInt32(bitmap(triggerIndex)))
 
-    def set_mode(self, channel_index: List[int] = [], mode: str = "current"):
+    def set_mode(self, channel_index: List[int] = [], mode: str = "current") -> int:
         """set a single or all channels to voltage or current mode
         
         args
