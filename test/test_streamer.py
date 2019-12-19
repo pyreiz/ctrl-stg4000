@@ -6,7 +6,7 @@ import pytest
 def stg():
     stg = STG4000Streamer()
     assert stg.output_rate_in_khz == 50
-    assert stg._signals == dict()
+    assert stg._signals.keys() == []
     assert stg.buffer_size == 100
     yield stg
 

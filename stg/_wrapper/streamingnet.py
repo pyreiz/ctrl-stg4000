@@ -1,7 +1,6 @@
-"""
-
-
-"""
+from multiprocessing import Manager
+from multiprocessing.managers import DictProxy
+import threading
 from typing import List
 from stg._wrapper.dll import StreamingInterface, CStg200xStreamingNet, System, STGX
 from stg._wrapper.downloadnet import STG4000 as STG4000DL
@@ -112,11 +111,17 @@ class STG4000(STG4000DL):
                 device.Disconnect()
 
 
+def queue_forever(signals: DictProxy, running: threading.Event):
+    while running.is_set():
+        pass
+
+
 class STG4000Streamer(STGX):
 
-    _signals = dict()
     _dll_bufsz = 100
     _outputrate = 50
+    _manager = Manager()
+    _signals = _manager.dict()
 
     def _streamer(self, buffer_size: int = 100):
         return StreamingInterface(self._info, buffer_size=buffer_size)
@@ -144,7 +149,6 @@ class STG4000Streamer(STGX):
         channel_index: int = 0,
         amplitudes_in_mA: List[float,] = [0],
         durations_in_ms: List[float,] = [0],
-        mode="current",
     ):
 
         signal = decompress(
@@ -153,3 +157,11 @@ class STG4000Streamer(STGX):
             rate_in_khz=self._outputrate,
         )
         self._signals[channel_index] = signal
+
+    def start(self, mode="current"):
+        running: threading.Event()
+        t = threading.Thread(target=queue_forever, args=(self._signals, running))
+        t.start()
+        self.sleep(1000)
+        running.clear()
+

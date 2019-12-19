@@ -10,3 +10,4 @@ dist/**
 .test/**
 docs/build/**
 .vscode/**
+.coverage.*
