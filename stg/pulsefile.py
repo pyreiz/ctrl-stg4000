@@ -145,6 +145,40 @@ def dump(pulsefiles: List[PulseFile], filename: FileName = "~/Desktop/test.dat")
             f.write(line)
 
 
+def decompress(
+    amplitudes_in_mA: List[float,] = [0],
+    durations_in_ms: List[float,] = [0],
+    rate_in_khz: int = 50,
+) -> List[float]:
+    """decompress amplitudes and durations into a continuously sampled signal
+    
+    args
+    ------
+    amplitudes_in_mA: List[float,] = [0]
+        a list of amplitudes
+    durations_in_ms: List[float,] = [0]
+        a list of the respective durationas
+    rate_in_khz: int = 50
+        the sampling rate of the decompressed signal
+    
+    returns
+    -------
+    signal: List[float]
+        a list of continuously signal sampled at the given rate in kHz
+
+    """
+    if rate_in_khz not in [50, 10]:
+        raise ValueError("Rate must be either 10 or 50kHz")
+
+    if len(amplitudes_in_mA) != len(durations_in_ms):
+        raise ValueError("Every amplitude needs a duration and vice versa")
+
+    signal = []
+    for a, d in zip(amplitudes_in_mA, durations_in_ms):
+        signal.extend([a] * int(d * rate_in_khz))
+    return signal
+
+
 # --------
 
 

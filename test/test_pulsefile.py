@@ -1,10 +1,32 @@
-from stg.pulsefile import repeat_pulsefile, PulseFile, dump
+from stg.pulsefile import repeat_pulsefile, PulseFile, dump, decompress
 import pytest
 from pathlib import Path
 
 
 # @pytest.mark.parametrize("mode", ["biphasic", "monophasic"])
 # @pytest.mark.parametrize("mA", [1, -1, 99999])
+
+
+def test_decompress():
+    "test decompression of a 100µs biphasic pulse at 20Hz ISI"
+    amplitudes_in_mA = [1, -1, 0]
+    durations_in_ms = [0.1, 0.1, 49.8]
+    rate_in_khz = 50
+    signal = decompress(
+        amplitudes_in_mA=amplitudes_in_mA,
+        durations_in_ms=durations_in_ms,
+        rate_in_khz=rate_in_khz,
+    )
+    assert len(signal) == 2500
+    assert signal[0:5] == [1] * 5
+    assert signal[5:10] == [-1] * 5
+    assert signal[10:] == [0] * 2490
+
+    with pytest.raises(ValueError):
+        signal = decompress(rate_in_khz=1)
+
+    with pytest.raises(ValueError):
+        signal = decompress(amplitudes_in_mA=[1, 1], durations_in_ms=[0.1])
 
 
 def test_pw_raises():

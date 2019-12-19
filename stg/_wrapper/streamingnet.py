@@ -1,5 +1,9 @@
+"""
+
+
+"""
 from typing import List
-from stg._wrapper.dll import StreamingInterface, CStg200xStreamingNet, System
+from stg._wrapper.dll import StreamingInterface, CStg200xStreamingNet, System, STGX
 from stg._wrapper.downloadnet import STG4000 as STG4000DL
 import time
 
@@ -106,3 +110,20 @@ class STG4000(STG4000DL):
                 device.StopLoop()
                 device.Disconnect()
 
+
+class ContinualSTG4000(STGX):
+
+    templates = dict()
+
+    def _streamer(self, buffer_size: int = 100):
+        return StreamingInterface(self._info, buffer_size=buffer_size)
+
+    def template(
+        self,
+        channel_index: int = 0,
+        amplitudes_in_mA: List[float,] = [0],
+        durations_in_ms: List[float,] = [0],
+        mode="current",
+    ):
+
+        self.templates[channel_index] = []
