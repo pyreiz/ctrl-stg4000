@@ -1,6 +1,42 @@
 from typing import Any
 
 
+def _mock(*args, **kwargs):
+    print("Mocking a call with", args, kwargs)
+    pass
+
+
+def transit(x):
+    return x
+
+
+from unittest.mock import Mock, PropertyMock
+from unittest.mock import MagicMock
+
+DeviceInfo = MagicMock()
+DeviceInfo.DeviceName = "STGmock"
+DeviceInfo.SerialNumber = "1007"
+DeviceInfo.ToString = MagicMock(return_value="Mock")
+DeviceList = MagicMock()
+DeviceList.GetNumberOfDevices = MagicMock(return_value=1)
+DeviceList.GetUsbListEntry = MagicMock(return_value=DeviceInfo)
+CMcsUsbListNet = MagicMock(return_value=DeviceList)
+DeviceEnumNet = Mock()
+DeviceEnumNet.MCS_STG_DEVICE = None
+STG_DestinationEnumNet = _mock
+
+
+System = MagicMock()
+System.UInt32 = transit
+System.Int16 = transit
+System.Array = transit
+
+
+def DataQueueSpace():
+    while True:
+        yield from [100, 1000, 2000]
+
+
 class CStg200xMockNet:
     """Mock a CStg200xDownloadNet or CStg200xStreamingNet for testing and development
     
@@ -30,29 +66,61 @@ class CStg200xMockNet:
         print("MOCK:DISCONNECT from a MOCK STG")
         pass
 
+    def GetNumberOfAnalogChannels(self):
+        return 2
+
+    def SetupTrigger(self, *args, **kwargs):
+        pass
+
+    def GetStgVersionInfo(self, a: str, b: str):
+        return "ignore", "M-Soft", "M-Hard"
+
+    def EnableContinousMode(self, *args, **kwargs):
+        pass
+
+    def SetCurrentMode(self, *args, **kwargs):
+        pass
+
+    def SetVoltageMode(self, *args, **kwargs):
+        pass
+
+    def SendStart(self, bmap):
+        pass
+
+    def SendStop(self, bmap):
+        pass
+
+    def GetTotalMemory(self):
+        return 10000
+
+    def GetNumberOfTriggerInputs(self):
+        return 2
+
+    def SetCapacity(self, *args, **kwargs):
+        pass
+
+    def SetOutputRate(self, *args, **kwargs):
+        pass
+
+    def StartLoop(self):
+        pass
+
+    def EnqueueData(self, *args, **kwargs):
+        pass
+
+    def StopLoop(self):
+        pass
+
+    def PrepareAndSendData(self, *args, **kwargs):
+        pass
+
+    DataQueueSpace = DataQueueSpace()
+
+    def GetDataQueueSpace(self, *args, **kwargs):
+        return next(self.DataQueueSpace)
+
 
 CStg200xStreamingNet = CStg200xDownloadNet = CStg200xMockNet
 CURRENT = 1
 VOLTAGE = 0
 DeviceInfo = Any
-
-
-def _mock(*args, **kwargs):
-    print("Mocking a call with", args, kwargs)
-    pass
-
-
-from unittest.mock import Mock, PropertyMock
-from unittest.mock import MagicMock
-
-DeviceInfo = MagicMock()
-DeviceInfo.DeviceName = "STGmock"
-DeviceInfo.SerialNumber = "1007"
-DeviceList = MagicMock()
-DeviceList.GetNumberOfDevices = MagicMock(return_value=1)
-DeviceList.GetUsbListEntry = MagicMock(return_value=DeviceInfo)
-CMcsUsbListNet = MagicMock(return_value=DeviceList)
-DeviceEnumNet = Mock()
-DeviceEnumNet.MCS_STG_DEVICE = None
-STG_DestinationEnumNet = _mock
-System = _mock
