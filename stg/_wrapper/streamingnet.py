@@ -88,7 +88,21 @@ class STG4000Streamer(STG4000DL):
         amplitudes_in_mA: List[float,] = [0],
         durations_in_ms: List[float,] = [0],
     ):
-        "set one of the signal templates with decompressed amps/durs"
+        """sets the signal to be continually appended to the buffer
+        
+        args
+        ----
+        channel_index: int = 0
+            the channel for which the new signal is to be defined
+        amplitudes_in_mA: List[float,] = [0]
+            a list of amplitudes in mA
+        durations_in_ms: List[float,] = [0]
+        a list of durations in ms
+
+
+        The amplitudes and durations are decompressed (:meth:`~.stg.pulsefile.decompress`) to the sampling rate defined in :attr:`~.output_rate_in_hz`.
+        
+        """
         signal = decompress(
             amplitudes_in_mA=amplitudes_in_mA,
             durations_in_ms=durations_in_ms,

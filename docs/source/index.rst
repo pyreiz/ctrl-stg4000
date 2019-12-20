@@ -14,6 +14,9 @@ The API is located in stg.api. Import from there.
 
    dll
    stg
+   benchmark
+   pf
+   example
 
 
 Indices and tables

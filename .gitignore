@@ -8,6 +8,5 @@ htmlcov/*
 build/**
 dist/**
 .test/**
-docs/build/**
 .vscode/**
 .coverage.*

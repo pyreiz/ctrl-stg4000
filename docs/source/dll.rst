@@ -1,7 +1,7 @@
 DLL
 ---
 
-According to the documentation of the DLL::
+According to the documentation of the DLL
 
 The Streaming mode works by use of two ring buffers which hold data. One is in PC memory and managed by the DLL, and one is in on-board STG memory. Data is transfered from PC memory to the STG via the USB bus in time slices of one millisecond.
 
@@ -13,7 +13,7 @@ Small buffers have the advantage of a low latency between data generation in the
 
 In the Streaming mode, all triggers are available as well. Each of the eight analog and sync outputs can be assigned to one of the triggers.
 
-The output rate is user defined with a maximum of 50 kHz*
+The output rate is user defined with a maximum of 50 kHz
 
 Conclusion
 **********

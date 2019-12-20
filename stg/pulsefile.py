@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jun  4 14:38:43 2019
-
-@author: Robert Guggenberger
-"""
 from itertools import chain, repeat, accumulate
 from pathlib import Path
 from typing import Tuple, List, Union
@@ -12,11 +6,24 @@ FileName = Union[Path, str]
 
 
 class PulseFile:
-    """STG4000 signal
+    """Programmatically generate repetitive a biphasic or monophasic pulses
 
-    A wrapper object for simpler parametric generation of stimulation signals
+    args
+    ----
+    intensity_in_mA: float = 1
+        the amplitude of the first rectangular pulse
+    mode: str {"biphasic", "monophasic"} 
+        whether the pulse will be monophasic of biphasic, i.e. followed by a rectangular pulse with inverted amplitude
+    pulsewidth_in_ms: float = 0.1
+        the width of each rectangular pulse
+    burstcount: int = 1
+        how often these pulses will be repeated
+    isi_in_ms: float = 49.8
+        how much time will pass between pulses
 
-    After initialization, run  :meth:`~.compile` to generate amplitudes and durations for downloading with :meth:`~.stg.wrapper.STG4000.download`
+
+    After initialization, run  :meth:`~.compile` to generate amplitudes and durations. These can be downloadwed with STG4000s :meth:`~.stg._wrapper.downloadnet.STG4000.download`
+    
     """
 
     def __init__(
@@ -53,13 +60,15 @@ class PulseFile:
         self.isi: float = isi_in_ms
 
     def compile(self):
-        """compile the pulsefile to amps and durs
+        """compile the pulsefile to compressed amps and durs
+
         returns
         ------
-        amps: List[float]
+        amplitudes_in_mA: List[float]
             a list of amplitudes
-        durs: List[float]
+        durations_in_ms: List[float]
             a list of durations
+
         """
         amps = [a for a in chain(self.intensity, [0])]
         durs = [d for d in chain(self.pulsewidth, [self.isi])]
@@ -69,7 +78,7 @@ class PulseFile:
 
     @property
     def duration_in_ms(self):
-        "returns the total expected duration of stimulation"
+        "the duration of the complete stimulation including all bursts"
         return self.burstcount * (sum(self.pulsewidth) + self.isi)
 
     def __call__(self):
@@ -101,7 +110,7 @@ def init_datfile(filename: FileName):
             f.write(line)
 
 
-def encode(pulsefile, channel: int = 0):
+def encode(pulsefile, channel: int = 0) -> str:
     """encode a pulsefile into ascii format
 
     args
@@ -110,6 +119,12 @@ def encode(pulsefile, channel: int = 0):
         a pulsefile
     channel:int
         the channel, indexing starts at 0
+
+    returns
+    -------
+
+    content:str
+        the content of the file
     """
     stim_info = [
         f"channel: {channel+1}\n",
@@ -132,6 +147,15 @@ def encode(pulsefile, channel: int = 0):
 
 
 def dump(pulsefiles: List[PulseFile], filename: FileName = "~/Desktop/test.dat"):
+    """save Pulsefiles into a dat file readable by `MC Stimulus II <https://www.multichannelsystems.com/software/mc-stimulus-ii>`_
+
+    args
+    ----
+    pulsefiles: List[PulseFile]
+        a list of pulsefiles. The order defines the channel for which the respective pulsefile will be stored
+    filename: Union[str, Path] = '~/Desktop/test.dat'
+        the filename of the file
+    """
     fname = Path(str(filename)).expanduser().absolute()
     init_datfile(fname)
     with fname.open("r") as f:
@@ -183,14 +207,14 @@ def decompress(
 
 
 def entrain(
-    pf: PulseFile, ibi_in_ms: float, count: int
+    pulsefile: PulseFile, ibi_in_ms: float, count: int
 ) -> Tuple[List[float], List[float]]:
     """compile and repeat a pulsefile separated by ibi_in_ms
 
     args
     ----
 
-    pf: PulseFile
+    pulsefile: PulseFile
         defines a burst
     ibi_in_ms: float
         how long to wait between bursts
@@ -205,7 +229,7 @@ def entrain(
     durs: List[float]
         a list of durations
     """
-    inamps, indurs = pf.compile()
+    inamps, indurs = pulsefile.compile()
     for cnt in range(count):
         if cnt == 0:
             amps, durs = inamps[:], indurs[:]

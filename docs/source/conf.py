@@ -15,6 +15,7 @@
 # sys.path.insert(0, os.path.abspath('.'))
 from os import environ
 import pkg_resources
+from pathlib import Path
 
 # -- Project information -----------------------------------------------------
 
@@ -30,6 +31,17 @@ release = pkg_resources.get_distribution("stg".lower()).version
 environ["DOC"] = "1"  # to prevent library loading files
 
 
+def create_example(dist: str = "stg"):
+    fname = Path("example.rst")
+    dist = pkg_resources.get_distribution(dist)
+    content = dist.get_resource_string("stg", "stg/example/example.py")
+    with fname.open("w") as f:
+        f.write(f"Example\n-------\n .. code-block:: python\n\n")
+        for line in content.decode().splitlines():
+            f.write("   " + line + "\n")
+
+
+create_example()
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -94,4 +106,3 @@ html_theme = "default"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-
