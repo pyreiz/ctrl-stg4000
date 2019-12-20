@@ -1,5 +1,6 @@
-Signal Generation
------------------
+PulseFiles
+----------
+
 
 
 .. automodule:: stg.pulsefile

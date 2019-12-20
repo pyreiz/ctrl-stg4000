@@ -14,18 +14,42 @@ from stg._wrapper.dll import (
 
 
 class STG4000(STGX):
+    """
+    This class implements the interface to download, start and stop stimulation. 
+
+    At this point, you should pay attention to two specific details. First, indexing starts at 0. That means, the first channel is channel 0. Second, there is a difference between channels and triggers for the STG. Triggers are mapped to channels according to a channelmap. That means a single trigger can start stimulation of a whole set of channels. During initialization of the STG, we give this a sensible default. That means, all triggers are mapped to the respective channels following diagonal identity, i.e. trigger 0 maps to channel 0. Use :meth:`~STG4000.diagonalize_triggermap` to repeat this normalization.
+
+
+    Example
+    -------
+
+    .. code-block:: python
+
+        import time
+        from stg.api import STG4000
+        
+        stg = STG4000()
+        stg.download(0,[1,-1, 0], [0.1, 0.1, 49.8])
+        while True:
+            time.sleep(0.5)    
+            a.trigger()
+            stg.start_stimulation([0])
+
+    .. note::
+       
+       * Indexing starts at zero
+       * Differentiate triggers and channels
+
+    
+    """
+
     def stop_stimulation(self, triggerIndex: List[int] = []):
         """stops all trigger inputs or a selection based on a list 
         
-        Triggers are mapped to channels according to the channelmap. By default, all triggers are mapped to channels following diagonal identity, i.e. trigger 0 maps to channel 0. This is done during initialization of the STG4000 object. Use :meth:`~STG4000.diagonalize_triggermap` to repeat this normalization.
-        
         args
         ----
-        channel_index:list
-            defaults to all, which sets all channels to voltage mode
-            otherwise, takes a list of integers of the targets, 
-            e.g. [0,1]
-            Indexing starts at 0.
+        triggerIndex:List[int]
+            defaults to [], which stops stimulation at all channels. Give it a list of integers to start a specific subset of triggers, e.g. [0,1].   
         
         """
 
@@ -37,15 +61,10 @@ class STG4000(STGX):
     def start_stimulation(self, triggerIndex: List[int] = []):
         """starts all trigger inputs or a selection based on a list 
         
-        Triggers are mapped to channels according to the channelmap. By default, all triggers are mapped to channels following diagonal identity, i.e. trigger 0 maps to channel 0. This is done during initialization of the STG4000 object. Use :meth:`~STG4000.diagonalize_triggermap` to repeat this normalization.
-        
         args
         ----
-        channel_index:list
-            defaults to all, which sets all channels to voltage mode
-            otherwise, takes a list of integers of the targets, 
-            e.g. [0,1]
-            Indexing starts at 0.
+        triggerIndex:List[int]
+            defaults to [], which starts stimulation at all channels. Give it a list of integers to start a specific subset of triggers, e.g. [0,1].         
         
         """
 
@@ -59,12 +78,17 @@ class STG4000(STGX):
         
         args
         ----
-        channel_index:list
-            defaults to all, which sets all channels to current mode
-            otherwise, takes an integer of the target channel.
-            Indexing starts at 0.    
-        mode: str {"current", "voltage"}    
+        channel_index: list        
+            defaults to [], which sets the mode at all channels. Give it a list of integers to set the mode only for a specific subset of channels, e.g. [0,1].
+        mode: str ("current", "voltage")
             defaults to current
+
+
+        .. warning::
+           
+           Because we primarily use current-mode, voltage mode is relatively untested. Additionally, i so far have not tested the behavior when different channels are in different modes. Be safe, and just set all channels to current-mode with :code:`stg.set_mode("current")`
+        
+
         """
         if mode == "current":
             self._set_current_mode(channel_index)
@@ -78,11 +102,8 @@ class STG4000(STGX):
             )
 
     def diagonalize_triggermap(self):
-        """Normalize the channelmap to a diagonal
-                
-        Triggers are mapped to channels according to the channelmap. This is 
-        done at the lower level with interface.SetupTrigger. 
-        
+        """Give each trigger a sensible channel
+                       
         Use this function to normalize the mapping of trigger to channel to a diagonal identity, i.e. trigger 0 maps to channel 0,  so on.
 
             +----------+---+---+---+---+---+---+---+---+
@@ -136,7 +157,7 @@ class STG4000(STGX):
      
         .. code-block:: python
             
-           mcs.download(channel_index = 0,
+           stg.download(channel_index = 0,
                         amplitudes_in_mA = [1, -1, 0],
                         durations_in_ms = [.1, .1, .488])
            

@@ -1,9 +1,8 @@
 from distutils.core import setup
-from setuptools import find_namespace_packages
 
 setup(
     name="stg",
-    version="0.2.0",
+    version="0.3.0",
     description="Control multichannelsystems STG 4002/4/8.",
     long_description="Toolbox to control  multichannelsystems STG 4002/4/8 via MCS.USB.DLL",
     author="Robert Guggenberger",
