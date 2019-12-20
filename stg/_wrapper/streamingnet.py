@@ -104,6 +104,7 @@ class STG4000Streamer(STG4000DL):
         barrier: threading.Barrier,
         capacity_in_s: float = 1,
         buffer_in_s: float = 0.1,
+        callback_percent: int = 10,
     ):
         rate = self.output_rate_in_hz
         capacity = int(rate * capacity_in_s)
@@ -112,7 +113,7 @@ class STG4000Streamer(STG4000DL):
             device.SetCurrentMode()
             device.EnableContinousMode()
             set_capacity(device, capacity)
-            diagonalize_triggermap(device)
+            diagonalize_triggermap(device, callback_percent)
             device.SetOutputRate(System.UInt32(rate))
 
             device.StartLoop()
@@ -123,7 +124,7 @@ class STG4000Streamer(STG4000DL):
             try:
                 barrier.wait()
                 #               t0 = time.time()
-                print("Start streaming updating with a latency of ")
+                print("Start streaming")
                 while self._streaming.is_set():
                     #                   delta = time.time() - t0
                     prg = self._signals[0].copy()
@@ -143,12 +144,22 @@ class STG4000Streamer(STG4000DL):
                 device.StopLoop()
                 device.Disconnect()
 
-    def start_streaming(self, capacity_in_s: float = 1):
+    def start_streaming(
+        self,
+        capacity_in_s: float = 1,
+        buffer_in_s: float = 0.1,
+        callback_percent: int = 10,
+    ):
         barrier = threading.Barrier(2)
         self._streaming.set()
         self._t = threading.Thread(
             target=self._stream,
-            kwargs={"barrier": barrier, "capacity_in_s": capacity_in_s},
+            kwargs={
+                "barrier": barrier,
+                "capacity_in_s": capacity_in_s,
+                "buffer_in_s": buffer_in_s,
+                "callback_percent": callback_percent,
+            },
         )
         self._t.start()
         barrier.wait()
