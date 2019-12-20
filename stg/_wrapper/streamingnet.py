@@ -73,19 +73,9 @@ class SignalMapping(dict):
 # -----------------------------------------------------------------------------
 class STG4000Streamer(STG4000DL):
 
-    _dll_bufsz: int = 5_000  #: how many samples will be allocated in total across all channels (10 % of outputrate -> 100 ms)
     _streaming = threading.Event()
     _outputrate: int = 50_000
     _signals = SignalMapping()
-
-    @property
-    def buffer_size(self) -> int:
-        "the size of the ring-buffer managed by the dll"
-        return self._dll_bufsz
-
-    @buffer_size.setter
-    def buffer_size(self, buffer_size: int = 50_000):
-        self._dll_bufsz = buffer_size
 
     @property
     def output_rate_in_hz(self) -> int:
@@ -106,15 +96,21 @@ class STG4000Streamer(STG4000DL):
         )
         self._signals[channel_index] = signal
 
-    def streamer(self):
-        return StreamingInterface(self._info, buffer_size=self.buffer_size)
+    def streamer(self, dll_buffer_size: int = 5_000):
+        return StreamingInterface(self._info, buffer_size=dll_buffer_size)
 
-    def _stream(self, barrier: threading.Barrier, capacity_in_s: float = 1):
-        with self.streamer() as device:
+    def _stream(
+        self,
+        barrier: threading.Barrier,
+        capacity_in_s: float = 1,
+        buffer_in_s: float = 0.1,
+    ):
+        rate = self.output_rate_in_hz
+        capacity = int(rate * capacity_in_s)
+        buffer_size = int(rate * buffer_in_s)
+        with self.streamer(buffer_size) as device:
             device.SetCurrentMode()
             device.EnableContinousMode()
-            rate = self.output_rate_in_hz
-            capacity = int(rate * capacity_in_s)
             set_capacity(device, capacity)
             diagonalize_triggermap(device)
             device.SetOutputRate(System.UInt32(rate))
@@ -126,12 +122,12 @@ class STG4000Streamer(STG4000DL):
                 device.SendStart(System.UInt32(i))
             try:
                 barrier.wait()
-                t0 = time.time()
+                #               t0 = time.time()
                 print("Start streaming updating with a latency of ")
                 while self._streaming.is_set():
-                    delta = time.time() - t0
+                    #                   delta = time.time() - t0
                     prg = self._signals[0].copy()
-                    print(delta, prg[19])
+                    #                    print(delta, prg[19])
                     for chan, prg in self._signals.items():
                         sent = queue(device, signal=prg, chan=chan)
                         while not sent:

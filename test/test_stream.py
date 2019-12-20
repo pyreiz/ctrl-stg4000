@@ -27,11 +27,6 @@ def stg():
     yield stg
 
 
-def test_properties(stg):
-    stg.buffer_size = 99
-    assert stg.buffer_size == 99
-
-
 def test_increase_pulse_width():
     "start streaming a biphasic pulse, after 5s, increase the pulse-width"
     stg = STG4000Streamer()
