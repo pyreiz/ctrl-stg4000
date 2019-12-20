@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-"""
-
 from stg.api import PulseFile, STG4000
 
 # we initialize the STG and print information about it

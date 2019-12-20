@@ -110,7 +110,7 @@ def init_datfile(filename: FileName):
             f.write(line)
 
 
-def encode(pulsefile, channel: int = 0) -> str:
+def encode(pulsefile, channel: int = 0) -> List[str]:
     """encode a pulsefile into ascii format
 
     args
