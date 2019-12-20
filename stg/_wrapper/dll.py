@@ -141,6 +141,20 @@ class StreamingInterface(BasicInterface):
 
 
 class STGX(ABC):
+    """
+    The STGX is the base class for the STG4000 and wraps the basic USB interface and reads all the properties that are determined by the specific STG connected to your PC. Additionally methods for downloading or streaming are implemented by subclasses. Ideally, just use :code:`from stg.api import STG4000`, and you will get the class implementing all bells and whistles.
+
+    When initialized without arguments, i.e. :code:`stg = STG4000()`, it looks through your USB ports and connects with the first STGs it finds. If you want to use a specific STG, initialize the class with the serial number of the device, e.g. using :code:`stg = STG4000(serial=12345)`.
+
+    Immediatly after the connection is established, we eagerly read all properties from the stimulator, e.g. the number of channels or the output resolution. This read-only properties are than cached, to prevent any later overhead. This means it might take a few seconds until the :code:`stg` is initialized, but it saves you precious milliseconds when you later stimulate.
+
+    Because at any time, only one process can be connected with a specific STG the connection is implemented using a :code:`with ... as` idiom. This should therefore be relatively safe. It is still possible that the STG can get into a weird state. In that case, try turning it off and on again.
+
+    .. note::
+
+        * Properties are eagerly loaded and cached during initalization
+    """
+
     def __init__(self, serial: int = None):
         if serial is None:
             try:
