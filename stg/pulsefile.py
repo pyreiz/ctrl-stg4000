@@ -182,7 +182,7 @@ def decompress(
 # --------
 
 
-def repeat_pulsefile(
+def entrain(
     pf: PulseFile, ibi_in_ms: float, count: int
 ) -> Tuple[List[float], List[float]]:
     """compile and repeat a pulsefile separated by ibi_in_ms

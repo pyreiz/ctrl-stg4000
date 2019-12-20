@@ -1,4 +1,4 @@
-from stg.pulsefile import repeat_pulsefile, PulseFile, dump, decompress
+from stg.pulsefile import entrain, PulseFile, dump, decompress
 import pytest
 from pathlib import Path
 
@@ -156,10 +156,10 @@ def test_dump():
         assert o == e
 
 
-def test_repeat():
+def test_entrain():
     pf = PulseFile()
     a, d = pf()
-    amps, durs = repeat_pulsefile(pf, ibi_in_ms=1, count=2)
+    amps, durs = entrain(pf, ibi_in_ms=1, count=2)
     assert amps[3] == 0
     assert durs[3] == 1
     assert durs[0:3] == durs[4:]
