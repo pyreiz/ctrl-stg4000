@@ -188,7 +188,7 @@ def decompress(
     returns
     -------
     signal: List[float]
-        a list of continuously signal sampled at the given rate in kHz
+        a list of amplitudes comprising the signal continuously sampled at the given rate
 
     """
     if rate_in_hz not in [50_000, 10_000]:
