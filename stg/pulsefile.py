@@ -133,10 +133,9 @@ def encode(pulsefile, channel: int = 0) -> List[str]:
     ]  # : the header for every channel
 
     stim_commands = []
-    for bc in range(0, pulsefile.burstcount):
+    for _ in range(0, pulsefile.burstcount):
         for amp, pw in zip(pulsefile.intensity, pulsefile.pulsewidth):
             newline = f"{amp}\t{pw*1000}\n"  # scale to µA/µs
-
             stim_commands.append(newline)
 
         newline = f"0\t{pulsefile.isi*1000}\n"  # scale to µs
