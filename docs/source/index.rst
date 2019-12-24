@@ -36,7 +36,7 @@ Installation
     #download and install the dll from mulitchannelsystems
     python -m stg.install 
 
-Because of this, the pacakage only works on Windows. If the package is run on Linux, skip the installation of the requirements. On linux, the package automatically mocks the interface to the STG4000. This allows to run tests and build documentation, and can help when you write scripts for your experiments.
+Because of this, the package only works on Windows. If the package is run on Linux, skip the installation of the requirements. On linux, the package automatically mocks the interface to the STG4000. This allows to run tests and build documentation, and can help when you write scripts for your experiments.
 
 Testing
 -------
@@ -50,7 +50,7 @@ Connect your oscilloscope and start the following example:
    stg.download(0, *PulseFile().compile())
    stg.start_stimulation([0])
 
-You can run full tests using pytest, mypy or everything with :code: `make test` from the root of the package. By default, downloading the dll is not tested, but can be turned on with :code:`pytest -m "install"`.
+You can run full tests using pytest, mypy or everything with :code:`make test` from the root of the package. By default, downloading the dll is not tested, but can be tested selectively with :code:`pytest -m "install"`.
 
 
 Documentation
