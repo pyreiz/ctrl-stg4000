@@ -107,7 +107,7 @@ class STG4000Streamer(STG4000DL):
        buffer_in_s=0.05 # how large is the buffer in the DLL?       
        capacity_in_s=.1 # how large is the buffer on the STG?
 
-       stg = STG4000()
+       stg = STG4000()              
        stg.start_streaming(capacity_in_s=capacity_in_s, 
                            buffer_in_s=buffer_in_s)
        while True:
@@ -170,6 +170,15 @@ class STG4000Streamer(STG4000DL):
         buffer_in_s: float = 0.1,
         callback_percent: int = 10,
     ):
+
+        # make sure that a signal was set, otherwise return with the
+        # the error flag set
+        self._error = None
+        if len(self._signals) == 0:
+            self._error = IndexError("No signal is defined. Use set_signal first")
+            barrier.wait()  # so the caller can return
+            return
+
         rate = self.output_rate_in_hz
         capacity = int(rate * capacity_in_s)
         buffer_size = int(rate * buffer_in_s)
@@ -181,27 +190,29 @@ class STG4000Streamer(STG4000DL):
             device.SetOutputRate(System.UInt32(rate))
 
             device.StartLoop()
-            time.sleep(1)  # suggest by documentation for initialization of the loop
+            # suggested by documentation for initialization of the loop
+            time.sleep(1)
             nTrigger = device.GetNumberOfTriggerInputs()
             for i in range(nTrigger):
                 device.SendStart(System.UInt32(i))
+            # everything is prepared. we release the barrier, so that
+            # the caller, i.e. start_streaming, may return now.
+            barrier.wait()
+            print("Start streaming")
             try:
-                barrier.wait()
-                #               t0 = time.time()
-                print("Start streaming")
+                # run as long as desired or until an exception is raised
                 while self._streaming.is_set():
-                    #                   delta = time.time() - t0
-                    prg = self._signals[0].copy()
-                    #                    print(delta, prg[19])
-                    for chan, prg in self._signals.items():
-                        sent = queue(device, signal=prg, chan=chan)
+                    # go through all the signals set for the channels
+                    for chan, sig in self._signals.items():
+                        sent = queue(device, signal=sig, chan=chan)
                         while not sent:
-                            sent = queue(device, signal=prg, chan=chan)
+                            sent = queue(device, signal=sig, chan=chan)
+                            # put here to allow to break as fast as possible
                             if self._streaming.is_set() == False:
                                 break
 
             except Exception as e:  # pragma no cover
-                print(f"Exception: {e}")
+                print(f"Exception: {repr(e)}")
             finally:
                 for i in range(nTrigger):
                     device.SendStop(System.UInt32(i))
@@ -240,7 +251,10 @@ class STG4000Streamer(STG4000DL):
             },
         )
         self._t.start()
-        barrier.wait()
+        barrier.wait()  # the thread is ready
+        # raise an Exception if there was an error during setup of the thread
+        if self._error is not None:
+            raise (self._error)
 
     def stop_streaming(self):
         """closes the thread started when calling :meth:`~.start_streaming` gracefully

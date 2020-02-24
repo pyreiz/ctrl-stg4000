@@ -27,6 +27,14 @@ def stg():
     yield stg
 
 
+def test_streaming_before_set_signal():
+    "start streaming before a signal was set should raise an IndexError"
+    stg = STG4000Streamer()
+    with pytest.raises(Exception):
+        stg.start_streaming(capacity_in_s=0.1)
+    stg.stop_streaming()
+
+
 def test_increase_pulse_width():
     "start streaming a biphasic pulse, after 5s, increase the pulse-width"
     stg = STG4000Streamer()
