@@ -11,14 +11,8 @@ clean:
 
 .PHONY: test
 test: build
-	twine check dist/*
-	# twine upload --repository-url https://test.pypi.org/legacy/ dist/* --verbose
-	virtualenv .test
-	source .test/bin/activate
-	pip install dist/*.whl
-	pytest
-	coverage html
-	
+	./test/runtest
+
 .PHONY: upload
 upload: build
 	twine check dist/*

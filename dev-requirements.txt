@@ -1,0 +1,4 @@
+wheel
+coverage
+pytest
+pytest-cov

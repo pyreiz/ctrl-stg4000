@@ -26,8 +26,10 @@ Installation
 Windows
 .......
 
-ctrl-stg4000 wraps the [C# .dll](https://www.multichannelsystems.com/software/mcsusbnetdll) offered by
-multichannelsystems to control their STG4000 range of electrical stimulators. Therefore, the python package only works on Windows, because the STG and the dll are only supported for Windows by multichannelsystems.
+ctrl-stg4000 wraps the [C# .dll](https://www.multichannelsystems.com/software/mcsusbnetdll)
+offered by multichannelsystems to control their STG4000 range of electrical
+stimulators. Therefore, the python package only works on Windows, because the
+STG and the dll are only supported for Windows by multichannelsystems.
 
 .. code-block:: bash
 
@@ -41,7 +43,8 @@ multichannelsystems to control their STG4000 range of electrical stimulators. Th
 Linux
 .....
 
-The package can be installed on Linux though, just skip the installation of pythonnet and downloading the dll.
+The package can be installed on Linux though, just skip the installation of
+pythonnet and downloading the dll.
 
 .. code-block:: bash
 
@@ -49,7 +52,9 @@ The package can be installed on Linux though, just skip the installation of pyth
     cd ctrl-stg4000
     pip install -e .
 
-On linux, the package automatically mocks the interface to the STG4000. This allows to run tests and build documentation, and can help when you write scripts for your experiments.
+On linux, the package automatically mocks the interface to the STG4000. This
+allows to run tests and build documentation, and can help when you write
+scripts for your experiments.
 
 Testing
 -------
@@ -63,7 +68,9 @@ Connect your oscilloscope and start the following example:
    stg.download(0, *PulseFile().compile())
    stg.start_stimulation([0])
 
-You can run full tests using pytest, mypy or everything with :code:`make test` from the root of the package. By default, downloading the dll is not tested, but can be tested selectively with :code:`pytest -m "install"`.
+You can run full tests using pytest, mypy or everything with :code:`make test`
+from the root of the package. By default, downloading the dll is not tested, but
+can be tested selectively with :code:`pytest -m "install"`.
 
 
 Documentation
