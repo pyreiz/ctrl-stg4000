@@ -40,6 +40,12 @@ STG and the dll are only supported for Windows by multichannelsystems.
     # download and install the dll from mulitchannelsystems
     python -m stg.install
 
+As you installed everything fresh, please note that pythonnet / Windows will very likely complain when asked to execute a :code:`dll`-file downloaded from the internet. Go to :code:`stg/bin`, right-click on the :code:`McsUsbNet.dll` and unblock the dll. 
+
+.. image:: _static/unblock.jpg
+  :width: 400
+  :alt: LUnblocking the DLL::
+
 Linux
 .....
 
