@@ -32,7 +32,7 @@ def download_dll(platform: str) -> None:
     # move to desired position
     source = Path(dll)
     target = LIBPATH / "bin" / source.name
-    shutil.move(source, target)
+    shutil.move(str(source), target)
     print(" Unzipped file to", target)
 
     print("Cleaning up")
