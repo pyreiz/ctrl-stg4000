@@ -40,7 +40,10 @@ class STG4000(STGX):
        * Indexing starts at zero
        * Differentiate triggers and channels
 
-    
+    .. warning::
+        
+       Please note, that in download mode, the Python object and the STG do not share states. More specifically, once a program is downloaded to the STG, it stays downloaded, even if you delete the object, instantiate a new one or reboot the PC. You can enforce a clean state by rebooting the STG or explicitly downloading and thereby overwriting the channels after instantiation. This behavior was kept for three reasons. First, this is also the behavior of the MCS GUI, and therefore less non-intuitive if you come from this direction. Second, it clearly shows that in download mode, PC and STG are not coupled, i.e. once downloaded, you can trigger without any USB connection. Third, clearing the downloaded programs during instantiation (or deletion of the object) would prevent the user from common use cases like recovering the STG after a restart of the kernel, deletion of the object or unplugging the USB cable. 
+
     """
 
     def stop_stimulation(self, triggerIndex: List[int] = []):
