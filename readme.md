@@ -4,7 +4,7 @@ ctrl-stg4000
 ============
 
 This documentation explains the python package ctrl-stg4000 wrapping the [C# .dll](https://www.multichannelsystems.com/software/mcsusbnetdll) offered by
-multichannelsystems to control their STG4000 range of electrical stimulators. See also their gthub [repo](https://github.com/multichannelsystems/McsUsbNet].
+multichannelsystems to control their STG4000 range of electrical stimulators. See also their gthub [repo](https://github.com/multichannelsystems/McsUsbNet).
 
 At the time of development of this toolbox (and still), the company website offers the dll in version 3.2.45. In the meantime, the github repo was published and apparently already offers version 5.0.12. Please note that this toolbox is tested against version 3.2.45.
 
