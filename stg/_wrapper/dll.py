@@ -4,6 +4,7 @@ from typing import List, Union, Any, Callable
 from time import sleep
 from abc import ABC, abstractmethod
 
+OptionalInt = Union[int, None]
 
 # ----------------------------------------------------------------------------
 # Mocking everything in case we run this for testing or on Linux
@@ -50,7 +51,7 @@ def available() -> List[DeviceInfo]:
     return devices
 
 
-def select(serialnumber: int = None) -> Union[DeviceInfo, None]:
+def select(serialnumber: OptionalInt = None) -> Union[DeviceInfo, None]:
     "select an STG with a specific serial number from all connected devices"
     if serialnumber == -1:
         return mockinfo
@@ -155,7 +156,7 @@ class STGX(ABC):
         * Properties are eagerly loaded and cached during initalization
     """
 
-    def __init__(self, serial: int = None):
+    def __init__(self, serial: OptionalInt = None):
         if serial is None:
             try:
                 info = available()[0]
@@ -165,7 +166,11 @@ class STGX(ABC):
                 )
         else:  # pragma no cover
             info = select(serial)
-        print("Selecting {0:s}:SN {1:s}".format(info.DeviceName, info.SerialNumber))
+        print(
+            "Selecting {0:s}:SN {1:s}".format(
+                info.DeviceName, info.SerialNumber
+            )
+        )
         self._info = info
         self._collect_properties()
         self.diagonalize_triggermap()
@@ -179,19 +184,24 @@ class STGX(ABC):
             self._version = (soft, hard)
             self._serial_number = int(self._info.SerialNumber)
             self._crinua = (
-                interface.GetCurrentResolutionInNanoAmp(System.UInt32(0)) / 1000
+                interface.GetCurrentResolutionInNanoAmp(System.UInt32(0))
+                / 1000
             )
-            self._crinma = interface.GetCurrentResolutionInNanoAmp(System.UInt32(0)) / (
-                1000 * 1000
+            self._crinma = interface.GetCurrentResolutionInNanoAmp(
+                System.UInt32(0)
+            ) / (1000 * 1000)
+            self._crngma = interface.GetCurrentRangeInNanoAmp(
+                System.UInt32(0)
+            ) / (1000 * 1000)
+            self._crngua = interface.GetCurrentRangeInNanoAmp(
+                System.UInt32(0)
+            ) / (1000)
+            self._vinuv = interface.GetVoltageResolutionInMicroVolt(
+                System.UInt32(0)
             )
-            self._crngma = interface.GetCurrentRangeInNanoAmp(System.UInt32(0)) / (
-                1000 * 1000
-            )
-            self._crngua = interface.GetCurrentRangeInNanoAmp(System.UInt32(0)) / (1000)
-            self._vinuv = interface.GetVoltageResolutionInMicroVolt(System.UInt32(0))
-            self._vrnguv = interface.GetVoltageRangeInMicroVolt(System.UInt32(0)) / (
-                1000
-            )
+            self._vrnguv = interface.GetVoltageRangeInMicroVolt(
+                System.UInt32(0)
+            ) / (1000)
             self._dacr = interface.GetDACResolution()
             self._achancnt = interface.GetNumberOfAnalogChannels()
             self._trgincnt = interface.GetNumberOfTriggerInputs()
