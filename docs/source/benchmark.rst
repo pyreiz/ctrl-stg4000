@@ -37,7 +37,7 @@ The fastest and most reliable by far is triggering via TTL when a stimulation ha
 Trigger via USB
 ***************
 
-Compared to the fastest possible, triggering via :meth:`~.STG4000.start_stimulation` is still quite good. It comes with a latency of 1 to 1.5 ms.
+Compared to the fastest possible, triggering via :meth:`~.STG4000.start_stimulation` is still quite good. It comes with a latency of 2 to 2.5 ms.
 
 .. code-block:: python
 
